@@ -1,6 +1,9 @@
 package SBOLExamples.UCF2SBOL;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
@@ -47,7 +50,7 @@ public class Cello2SBOL {
 	static String provNS = "http://www.w3.org/ns/prov#";
 	static String dcNS = "http://purl.org/dc/elements/1.1/";
 	static String dcTermsNS = "http://purl.org/dc/terms/";
-	static String celloNS = "https://github.com/CIDARLAB/cello/wiki/Cello-SBOL-Description#";
+	static String celloNS = "http://cellocad.org/Terms/cello#";
 
 	static URI activityURI;
 	static String createdDate;
@@ -436,7 +439,7 @@ public class Cello2SBOL {
 	}
 
 	public static void convertGatePartsToSBOL(SBOLDocument document,HashSet<JSONObject> gate_partsArr,
-			HashMap<String,JSONObject> gatesMap) throws SBOLValidationException {
+			HashMap<String,JSONObject> gatesMap,HashMap<String,JSONObject> responseMap) throws SBOLValidationException {
 		for (JSONObject gate : gate_partsArr) {
 			String gate_name = (String)gate.get("gate_name");
 			ComponentDefinition componentDefinition = 
@@ -455,6 +458,22 @@ public class Cello2SBOL {
 	        		(String)gatesMap.get(gate_name).get("group_name"));
 	        componentDefinition.createAnnotation(new QName(celloNS,"color_hexcode","cello"), 
 	        		(String)gatesMap.get(gate_name).get("color_hexcode"));
+	        componentDefinition.createAnnotation(new QName(celloNS,"response_function","cello"), 
+	        		(String)responseMap.get(gate_name).get("equation"));
+	        JSONArray parameters = (JSONArray)responseMap.get(gate_name).get("parameters");
+	        for (Object obj : parameters) {
+	        	String name = (String)((JSONObject)obj).get("name");
+	        	componentDefinition.createAnnotation(new QName(celloNS,name,"cello"), 
+	        			(Double)((JSONObject)obj).get("value"));
+	        }
+	        JSONArray variables = (JSONArray)responseMap.get(gate_name).get("variables");
+	        for (Object obj : variables) {
+	        	String name = (String)((JSONObject)obj).get("name");
+	        	componentDefinition.createAnnotation(new QName(celloNS,name+"_off_threshold","cello"), 
+	        			(Double)((JSONObject)obj).get("off_threshold"));
+	        	componentDefinition.createAnnotation(new QName(celloNS,name+"_on_threshold","cello"), 
+	        			(Double)((JSONObject)obj).get("on_threshold"));
+	        }
 			
 			JSONArray expression_cassettes = (JSONArray) gate.get("expression_cassettes");
 			String seq = "";
@@ -517,6 +536,8 @@ public class Cello2SBOL {
 	public static void main( String[] args ) throws SBOLValidationException, SBOLConversionException, SynBioHubException, FileNotFoundException, IOException, ParseException, URISyntaxException
     {
 		// Create an SBOLDocument
+		String databasePrefix = "https://synbiohub.utah.edu";
+		
 		SBOLDocument document = new SBOLDocument(); 
 		document.setDefaultURIprefix(uriPrefix); 
 		document.setComplete(true); 
@@ -545,6 +566,7 @@ public class Cello2SBOL {
 		HashMap<String,JSONObject> partsMap = new HashMap<String,JSONObject>();
 		HashSet<JSONObject> gate_partsArr = new HashSet<JSONObject>();
 		HashMap<String,JSONObject> gatesMap = new HashMap<String,JSONObject>();
+		HashMap<String,JSONObject> responseMap = new HashMap<String,JSONObject>();
 
 		JSONParser parser = new JSONParser();
 		JSONArray a = (JSONArray) parser.parse(new FileReader(
@@ -565,10 +587,13 @@ public class Cello2SBOL {
 			else if (collection.equals("gates")) {
 				gatesMap.put((String)ucf.get("gate_name"),ucf);
 			}
+			else if (collection.equals("response_functions")) {
+				responseMap.put((String)ucf.get("gate_name"),ucf);
+			}
 		}
 
 		convertPartsToSBOL(document,partsMap);
-        convertGatePartsToSBOL(document,gate_partsArr,gatesMap);
+        convertGatePartsToSBOL(document,gate_partsArr,gatesMap,responseMap);
         createSensorsReporters(document);
         
 //        Collection cdsCollection = document.createCollection("cdsCollection", version);
@@ -586,9 +611,101 @@ public class Cello2SBOL {
         	}
         } else {   
         	// Upload to SynBioHub
-        	SynBioHubFrontend sbh = new SynBioHubFrontend("http://localhost:7777","https://synbiohub.org");
-        	sbh.login("myers@ece.utah.edu", "test");
+//        	SynBioHubFrontend sbh = new SynBioHubFrontend("http://localhost:7777","https://synbiohub.org");
+//        	sbh.login("myers@ece.utah.edu", "test");
+        	SynBioHubFrontend sbh = new SynBioHubFrontend(databasePrefix);
+        	sbh.login("myers@ece.utah.edu", "MaWen69!");
         	sbh.createCollection("CelloParts", "1", "Cello Parts", "These are the Cello parts", "27034378", true, document);
+        	JSONArray motif_library = new JSONArray();
+    		for (Object o : a)
+    		{
+    			JSONObject ucf = (JSONObject) o;
+
+    			String collection = (String) ucf.get("collection");
+
+    			if (collection.equals("gate_toxicity")) {
+    				String gateName = (String)ucf.get("gate_name");
+    				File file = new File("/Users/myers/Downloads/"+gateName+"_gate_toxicity.json");
+    				FileOutputStream stream = new FileOutputStream(file);
+    				BufferedOutputStream buffer = new BufferedOutputStream(stream);
+    				stream.write(ucf.toJSONString().getBytes());
+    				stream.close();
+    				buffer.close();
+    				sbh.attachFile(URI.create(databasePrefix + "/user/myers/CelloParts/"+gateName+"/1"), 
+    						"/Users/myers/Downloads/"+gateName+"_gate_toxicity.json");
+    			} else if (collection.equals("gate_cytometry")) {
+    				String gateName = (String)ucf.get("gate_name");
+    				File file = new File("/Users/myers/Downloads/"+gateName+"_gate_cytometry.json");
+    				FileOutputStream stream = new FileOutputStream(file);
+    				BufferedOutputStream buffer = new BufferedOutputStream(stream);
+    				stream.write(ucf.toJSONString().getBytes());
+    				stream.close();
+    				buffer.close();
+    				sbh.attachFile(URI.create(databasePrefix + "/user/myers/CelloParts/"+gateName+"/1"), 
+    						"/Users/myers/Downloads/"+gateName+"_gate_cytometry.json");
+    			} else if (collection.equals("header")) {
+    				File file = new File("/Users/myers/Downloads/header.json");
+    				FileOutputStream stream = new FileOutputStream(file);
+    				BufferedOutputStream buffer = new BufferedOutputStream(stream);
+    				stream.write(ucf.toJSONString().getBytes());
+    				stream.close();
+    				buffer.close();
+    				sbh.attachFile(URI.create(databasePrefix + "/user/myers/CelloParts/CelloParts_collection/1"), 
+    						"/Users/myers/Downloads/header.json");
+    			} else if (collection.equals("measurement_std")) {
+    				File file = new File("/Users/myers/Downloads/measurement_std.json");
+    				FileOutputStream stream = new FileOutputStream(file);
+    				BufferedOutputStream buffer = new BufferedOutputStream(stream);
+    				stream.write(ucf.toJSONString().getBytes());
+    				stream.close();
+    				buffer.close();
+    				sbh.attachFile(URI.create(databasePrefix + "/user/myers/CelloParts/CelloParts_collection/1"), 
+    						"/Users/myers/Downloads/measurement_std.json");
+    			} else if (collection.equals("logic_constraints")) {
+    				File file = new File("/Users/myers/Downloads/logic_constraints.json");
+    				FileOutputStream stream = new FileOutputStream(file);
+    				BufferedOutputStream buffer = new BufferedOutputStream(stream);
+    				stream.write(ucf.toJSONString().getBytes());
+    				stream.close();
+    				buffer.close();
+    				sbh.attachFile(URI.create(databasePrefix + "/user/myers/CelloParts/CelloParts_collection/1"), 
+    						"/Users/myers/Downloads/logic_constraints.json");
+    			} else if (collection.equals("eugene_rules")) {
+    				File file = new File("/Users/myers/Downloads/eugene_rules.json");
+    				FileOutputStream stream = new FileOutputStream(file);
+    				BufferedOutputStream buffer = new BufferedOutputStream(stream);
+    				stream.write(ucf.toJSONString().getBytes());
+    				stream.close();
+    				buffer.close();
+    				sbh.attachFile(URI.create(databasePrefix + "/user/myers/CelloParts/CelloParts_collection/1"), 
+    						"/Users/myers/Downloads/eugene_rules.json");
+    			} else if (collection.equals("genetic_locations")) {
+    				File file = new File("/Users/myers/Downloads/genetic_locations.json");
+    				FileOutputStream stream = new FileOutputStream(file);
+    				BufferedOutputStream buffer = new BufferedOutputStream(stream);
+    				stream.write(ucf.toJSONString().getBytes());
+    				stream.close();
+    				buffer.close();
+    				sbh.attachFile(URI.create(databasePrefix + "/user/myers/CelloParts/CelloParts_collection/1"), 
+    						"/Users/myers/Downloads/genetic_locations.json");
+    			} else if (collection.equals("motif_library")) {
+    				motif_library.add(ucf);
+    			} else if (collection.equals("gates")) {
+    			} else if (collection.equals("gate_parts")) {
+    			} else if (collection.equals("parts")) {
+    			} else if (collection.equals("response_functions")) {
+    			} else {
+        			System.out.println(collection);
+    			}
+    		}
+			File file = new File("/Users/myers/Downloads/motif_library.json");
+			FileOutputStream stream = new FileOutputStream(file);
+			BufferedOutputStream buffer = new BufferedOutputStream(stream);
+			stream.write(motif_library.toJSONString().getBytes());
+			stream.close();
+			buffer.close();
+			sbh.attachFile(URI.create(databasePrefix + "/user/myers/CelloParts/CelloParts_collection/1"), 
+					"/Users/myers/Downloads/motif_library.json");
         	System.out.println("Conversion, validation, and upload successful");
         }
 
