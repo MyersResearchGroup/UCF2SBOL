@@ -22,6 +22,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.sbolstandard.core2.AccessType;
+import org.sbolstandard.core2.Activity;
 import org.sbolstandard.core2.Component;
 import org.sbolstandard.core2.ComponentDefinition;
 import org.sbolstandard.core2.DirectionType;
@@ -62,6 +63,7 @@ public class Cello2SBOL {
     private static void createSensorsReporters(SBOLDocument doc) throws URISyntaxException,
     	SBOLValidationException, SBOLConversionException, IOException 
 	{ 
+    	// TODO: add wasDerivedFrom/wasGeneratedBy
 		//creating ModuleDefinitions 
 		ModuleDefinition LacI_protein_production = doc.createModuleDefinition("LacI_protein_production", obj_ver);
 		ModuleDefinition LacI_pTac_repression = doc.createModuleDefinition("LacI_pTac_repression", obj_ver);
@@ -401,14 +403,14 @@ public class Cello2SBOL {
 			Sequence sequence = document.createSequence(name + "_sequence", version, dnasequence, Sequence.IUPAC_DNA);
 			sequence.setName(name+"_sequence");
 			sequence.addWasDerivedFrom(derivedFrom);
-			sequence.createAnnotation(new QName(provNS,"wasGeneratedBy","prov"), activityURI);
+			sequence.addWasGeneratedBy(activityURI);
 			sequence.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 
 			ComponentDefinition componentDefinition = 
 					document.createComponentDefinition(name, version, ComponentDefinition.DNA);
 			componentDefinition.setName(name);
 			componentDefinition.addWasDerivedFrom(derivedFrom);
-			componentDefinition.createAnnotation(new QName(provNS,"wasGeneratedBy","prov"), activityURI);
+			componentDefinition.addWasGeneratedBy(activityURI);
 			componentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 			String partType = (String)part.get("type");
 			componentDefinition.addRole(getRole(partType));
@@ -418,13 +420,15 @@ public class Cello2SBOL {
 				ComponentDefinition proteinComponentDefinition =
 						document.createComponentDefinition(name+"_protein", version, ComponentDefinition.PROTEIN);
 				proteinComponentDefinition.setName(name+"_protein");
-				proteinComponentDefinition.createAnnotation(new QName(provNS,"wasGeneratedBy","prov"), activityURI);
+				proteinComponentDefinition.addWasDerivedFrom(derivedFrom);
+				proteinComponentDefinition.addWasGeneratedBy(activityURI);
 				proteinComponentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 
 				ModuleDefinition moduleDefinition = 
 						document.createModuleDefinition(name+"_protein_production", version);
 				moduleDefinition.setName(name+"_protein_production");
-				moduleDefinition.createAnnotation(new QName(provNS,"wasGeneratedBy","prov"), activityURI);
+				moduleDefinition.addWasDerivedFrom(derivedFrom);
+				moduleDefinition.addWasGeneratedBy(activityURI);
 				moduleDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 				moduleDefinition.createFunctionalComponent(name, AccessType.PUBLIC, 
 						componentDefinition.getIdentity(), DirectionType.NONE);
@@ -447,7 +451,7 @@ public class Cello2SBOL {
 			componentDefinition.setName(gate_name);
 			componentDefinition.addRole(SequenceOntology.ENGINEERED_REGION);
 			componentDefinition.addWasDerivedFrom(derivedFrom);
-			componentDefinition.createAnnotation(new QName(provNS,"wasGeneratedBy","prov"), activityURI);
+			componentDefinition.addWasGeneratedBy(activityURI);
 			componentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 	        componentDefinition.createAnnotation(new QName(celloNS,"family","cello"), 
 	        		(String)gatesMap.get(gate_name).get("system"));
@@ -509,7 +513,8 @@ public class Cello2SBOL {
 						if (document.getModuleDefinition(partId+"_"+promoter+"_repression", version)==null) {
 							ModuleDefinition moduleDefinition = 
 									document.createModuleDefinition(partId+"_"+promoter+"_repression", version);
-							moduleDefinition.createAnnotation(new QName(provNS,"wasGeneratedBy","prov"), activityURI);
+							moduleDefinition.addWasDerivedFrom(derivedFrom);
+							moduleDefinition.addWasGeneratedBy(activityURI);
 							moduleDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 							Interaction interaction = moduleDefinition.createInteraction(partId+"_"+promoter+"_repression", 
 									SystemsBiologyOntology.INHIBITION);
@@ -526,7 +531,7 @@ public class Cello2SBOL {
 			Sequence sequence = document.createSequence(gate_name+"_sequence", version, seq, Sequence.IUPAC_DNA);
 			sequence.setName(gate_name+"_sequence");
 			sequence.addWasDerivedFrom(derivedFrom);
-			sequence.createAnnotation(new QName(provNS,"wasGeneratedBy","prov"), activityURI);
+			sequence.addWasGeneratedBy(activityURI);
 			sequence.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 			componentDefinition.addSequence(sequence);
 			
@@ -544,8 +549,7 @@ public class Cello2SBOL {
 		document.setCreateDefaults(true);
 		
 		// Create an Activity
-		GenericTopLevel genericTopLevel = document.createGenericTopLevel("cello2sbol", version, 
-				new QName(provNS, "Activity", "prov"));
+		Activity genericTopLevel = document.createActivity("cello2sbol", version);
 		genericTopLevel.setName("Cello UCF to SBOL conversion");
 		genericTopLevel.setDescription("Conversion of the Cello UCF parts and metadata to SBOL2");
 		genericTopLevel.createAnnotation(new QName(dcNS,"creator","dc"), "Prashant Vaidyanathan");
@@ -611,10 +615,8 @@ public class Cello2SBOL {
         	}
         } else {   
         	// Upload to SynBioHub
-//        	SynBioHubFrontend sbh = new SynBioHubFrontend("http://localhost:7777","https://synbiohub.org");
-//        	sbh.login("myers@ece.utah.edu", "test");
         	SynBioHubFrontend sbh = new SynBioHubFrontend(databasePrefix);
-        	sbh.login("myers@ece.utah.edu", "MaWen69!");
+        	sbh.login("<login>", "<password>");
         	sbh.createCollection("CelloParts", "1", "Cello Parts", "These are the Cello parts", "27034378", true, document);
         	JSONArray motif_library = new JSONArray();
     		for (Object o : a)
