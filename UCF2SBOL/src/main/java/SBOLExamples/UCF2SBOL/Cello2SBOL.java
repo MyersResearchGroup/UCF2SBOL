@@ -676,13 +676,13 @@ public class Cello2SBOL {
     						args[3] + gateName+"_gate_toxicity.json");
     			} else if (collection.equals("gate_cytometry")) {
     				String gateName = (String)ucf.get("gate_name");
-    				File file = new File("/Users/myers/Downloads/"+gateName+"_gate_cytometry.json");
+    				File file = new File(args[3] + gateName+"_gate_cytometry.json");
     				FileOutputStream stream = new FileOutputStream(file);
     				BufferedOutputStream buffer = new BufferedOutputStream(stream);
     				stream.write(ucf.toJSONString().getBytes());
     				stream.close();
     				buffer.close();
-    				sbh.attachFile(URI.create(databasePrefix + "/user/myers/CelloParts/"+gateName+"/1"), 
+    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/CelloParts/"+gateName+"/1"), 
     						args[3] + gateName+"_gate_cytometry.json");
     			} else if (collection.equals("header")) {
     				File file = new File(args[3] + "header.json");
