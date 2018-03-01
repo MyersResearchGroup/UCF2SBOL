@@ -27,7 +27,6 @@ import org.sbolstandard.core2.Component;
 import org.sbolstandard.core2.ComponentDefinition;
 import org.sbolstandard.core2.DirectionType;
 import org.sbolstandard.core2.FunctionalComponent;
-import org.sbolstandard.core2.GenericTopLevel;
 import org.sbolstandard.core2.Interaction;
 import org.sbolstandard.core2.ModuleDefinition;
 import org.sbolstandard.core2.OrientationType;
@@ -276,7 +275,32 @@ public class Cello2SBOL {
 		String pLuxStar_prom_sequences = "ATAGCTTCTTACCGGACCTGTAGGATCGTACAGGTTTACGCAAGAAAATGGTTTGTTACTTTCGAATAAA";
 		Sequence pLuxStar_prom_seq= doc.createSequence("pLuxStar_sequence", obj_ver, pLuxStar_prom_sequences, Sequence.IUPAC_DNA);
 		pLuxStar_prom.addSequence(pLuxStar_prom_seq);
+		
+		//creating input sensor sequences
+		String araC_cds_sequences = "atggctgaagcgcaaaatgatcccctgctgccgggatactcgtttaatgcccatctggtggcgggtttaacgccgattgaggccaacggttatctcgatttttttatcgaccgaccgctgggaatgaaaggttatattctcaatctcaccattcgcggtcagggggtggtgaaaaatcagggacgagaatttgtttgccgaccgggtgatattttgctgttcccgccaggagagattcatcactacggtcgtcatccggaggctcgcgaatggtatcaccagtgggtttactttcgtccgcgcgcctactggcatgaatggcttaactggccgtcaatatttgccaatacggggttctttcgcccggatgaagcgcaccagccgcatttcagcgacctgtttgggcaaatcattaacgccgggcaaggggaagggcgctattcggagctgctggcgataaatctgcttgagcaattgttactgcggcgcatggaagcgattaacgagtcgctccatccaccgatggataatcgggtacgcgaggcttgtcagtacatcagcgatcacctggcagacagcaattttgatatcgccagcgtcgcacagcatgtttgcttgtcgccgtcgcgtctgtcacatcttttccgccagcagttagggattagcgtcttaagctggcgcgaggaccaacgtatcagccaggcgaagctgcttttgagcaccacccggatgcctatcgccaccgtcggtcgcaatgttggttttgacgatcaactctatttctcgcgggtatttaaaaaatgcaccggggccagcccgagcgagttccgtgccggttgtgaagaaaaagtgaatgatgtagccgtcaagttgtcataa"; 
+		Sequence araC_cds_seq = doc.createSequence("araC_sequence", obj_ver, araC_cds_sequences, Sequence.IUPAC_DNA);
+		araC_cds.addSequence(araC_cds_seq);
 
+		String tetR_cds_sequences = "atgtccagattagataaaagtaaagtgattaacagcgcattagagctgcttaatgaggtcggaatcgaaggtttaacaacccgtaaactcgcccagaagctaggtgtagagcagcctacattgtattggcatgtaaaaaataagcgggctttgctcgacgccttagccattgagatgttagataggcaccatactcacttttgccctttagaaggggaaagctggcaagattttttacgtaataacgctaaaagttttagatgtgctttactaagtcatcgcgatggagcaaaagtacatttaggtacacggcctacagaaaaacagtatgaaactctcgaaaatcaattagcctttttatgccaacaaggtttttcactagagaatgcattatatgcactcagcgctgtggggcattttactttaggttgcgtattggaagatcaagagcatcaagtcgctaaagaagaaagggaaacacctactactgatagtatgccgccattattacgacaagctatcgaattatttgatcaccaaggtgcagagccagccttcttattcggccttgaattgatcatatgcggattagaaaaacaacttaaatgtgaaagtgggtcctaa";
+		Sequence tetR_cds_seq = doc.createSequence("tetR_sequence", obj_ver, tetR_cds_sequences, Sequence.IUPAC_DNA);
+		tetR_cds.addSequence(tetR_cds_seq);
+
+		String lacI_cds_sequences = "atgaaaccagtaacgttatacgatgtcgcagagtatgccggtgtctcttatcagaccgtttcccgcgt"+
+				"ggtgaaccaggccagccacgtttctgcgaaaacgcgggaaaaagtggaagcggcgatggcggagctgaattacattcccaaccgcgtg"+
+				"gcacaacaactggcgggcaaacagtcgttgctgattggcgttgccacctccagtctggccctgcacgcgccgtcgcaaattgtcgcgg"+
+				"cgattaaatctcgcgccgatcaactgggtgccagcgtggtggtgtcgatggtagaacgaagcggcgtcgaagcctgtaaagcggcggt"+
+				"gcacaatcttctcgcgcaacgcgtcagtgggctgatcattaactatccgctggatgaccaggatgccattgctgtggaagctgcctgc"+
+				"actaatgttccggcgttatttcttgatgtctctgaccagacacccatcaacagtattattttctcccatgaggacggtacgcgactgg"+
+				"gcgtggagcatctggtcgcattgggtcaccagcaaatcgcgctgttagcgggcccattaagttctgtctcggcgcgtctgcgtctggc"+
+				"tggctggcataaatatctcactcgcaatcaaattcagccgatagcggaacgggaaggcgactggagtgccatgtccggttttcaacaa"+
+				"accatgcaaatgctgaatgagggcatcgttcccactgcgatgctggttgccaacgatcagatggcgctgggcgcaatgcgcgccatta"+
+				"ccgagtccgggctgcgcgttggtgcggatatctcggtagtgggatacgacgataccgaagatagctcatgttatatcccgccgttaac"+
+				"caccatcaaacaggattttcgcctgctggggcaaaccagcgtggaccgcttgctgcaactctctcagggccaggcggtgaagggcaat"+
+				"cagctgttgccagtctcactggtgaaaagaaaaaccaccctggcgcccaatacgcaaaccgcctctccccgcgcgttggccgattcat"+
+				"taatgcagctggcacgacaggtttcccgactggaaagcgggcagtgataa";
+		Sequence lacI_cds_seq = doc.createSequence("lacI_sequence", obj_ver, lacI_cds_sequences, Sequence.IUPAC_DNA);
+		lacI_cds.addSequence(lacI_cds_seq);
+		
 		//creating output Sequences 
 		String yfp_sequence = "CTGAAGCTGTCACCGGATGTGCTTTCCGGTCTGATGAGTCCGTGAGGACGAAACAGCCTCTACAAATAATTTTGTTTAATACTAGAGAAAGAGGGGAAATACTAGATGGTGAGCAAGGGCGAGGAGCTGTTCACCGGGGTGGTGCCCATCCTGGTCGAGCTGGACGGCGACGTAAACGGCCACAAGTTCAGCGTGTCCGGCGAGGGCGAGGGCGATGCCACCTACGGCAAGCTGACCCTGAAGTTCATCTGCACCACAGGCAAGCTGCCCGTGCCCTGGCCCACCCTCGTGACCACCTTCGGCTACGGCCTGCAATGCTTCGCCCGCTACCCCGACCACATGAAGCTGCACGACTTCTTCAAGTCCGCCATGCCCGAAGGCTACGTCCAGGAGCGCACCATCTTCTTCAAGGACGACGGCAACTACAAGACCCGCGCCGAGGTGAAGTTCGAGGGCGACACCCTGGTGAACCGCATCGAGCTGAAGGGCATCGACTTCAAGGAGGACGGCAACATCCTGGGGCACAAGCTGGAGTACAACTACAACAGCCACAACGTCTATATCATGGCCGACAAGCAGAAGAACGGCATCAAGGTGAACTTCAAGATCCGCCACAACATCGAGGACGGCAGCGTGCAGCTCGCCGACCACTACCAGCAGAACACCCCAATCGGCGACGGCCCCGTGCTGCTGCCCGACAACCACTACCTTAGCTACCAGTCCGCCCTGAGCAAAGACCCCAACGAGAAGCGCGATCACATGGTCCTGCTGGAGTTCGTGACCGCCGCCGGGATCACTCTCGGCATGGACGAGCTGTACAAGTAACTCGGTACCAAATTCCAGAAAAGAGGCCTCCCGAAAGGGGGGCCTTTTTTCGTTTTGGTCC";
 		Sequence yfp_seq= doc.createSequence("YFP_protein_sequence", obj_ver, yfp_sequence, Sequence.IUPAC_DNA);
@@ -538,10 +562,26 @@ public class Cello2SBOL {
 		}
 	}
 	
+	// args[0] - login email
+	// args[1] - password
+	// args[2] - login user
+	// args[3] - temporary directory
+	// args[4] - databasePrefix
+	// args[5] - path to UCF file
 	public static void main( String[] args ) throws SBOLValidationException, SBOLConversionException, SynBioHubException, FileNotFoundException, IOException, ParseException, URISyntaxException
     {
+		if (args.length < 6) {
+			System.err.println("Usage:");
+			System.err.println(" login email");
+			System.err.println(" password");
+			System.err.println(" login user");
+			System.err.println(" temporary directory");
+			System.err.println(" database prefix");
+			System.err.println(" path to UCF file");
+			return;
+		}
 		// Create an SBOLDocument
-		String databasePrefix = "https://synbiohub.utah.edu";
+		String databasePrefix = args[4];
 		
 		SBOLDocument document = new SBOLDocument(); 
 		document.setDefaultURIprefix(uriPrefix); 
@@ -573,8 +613,7 @@ public class Cello2SBOL {
 		HashMap<String,JSONObject> responseMap = new HashMap<String,JSONObject>();
 
 		JSONParser parser = new JSONParser();
-		JSONArray a = (JSONArray) parser.parse(new FileReader(
-				"/Users/myers/git/CelloUCF2SynbioHub/ucf/Eco1C1G1T0.UCF.json"));
+		JSONArray a = (JSONArray) parser.parse(new FileReader(args[5]));
 
 		for (Object o : a)
 		{
@@ -616,7 +655,7 @@ public class Cello2SBOL {
         } else {   
         	// Upload to SynBioHub
         	SynBioHubFrontend sbh = new SynBioHubFrontend(databasePrefix);
-        	sbh.login("<login>", "<password>");
+        	sbh.login(args[0], args[1]);
         	sbh.createCollection("CelloParts", "1", "Cello Parts", "These are the Cello parts", "27034378", true, document);
         	JSONArray motif_library = new JSONArray();
     		for (Object o : a)
@@ -627,14 +666,14 @@ public class Cello2SBOL {
 
     			if (collection.equals("gate_toxicity")) {
     				String gateName = (String)ucf.get("gate_name");
-    				File file = new File("/Users/myers/Downloads/"+gateName+"_gate_toxicity.json");
+    				File file = new File(args[3] + gateName+"_gate_toxicity.json");
     				FileOutputStream stream = new FileOutputStream(file);
     				BufferedOutputStream buffer = new BufferedOutputStream(stream);
     				stream.write(ucf.toJSONString().getBytes());
     				stream.close();
     				buffer.close();
-    				sbh.attachFile(URI.create(databasePrefix + "/user/myers/CelloParts/"+gateName+"/1"), 
-    						"/Users/myers/Downloads/"+gateName+"_gate_toxicity.json");
+    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/CelloParts/"+gateName+"/1"), 
+    						args[3] + gateName+"_gate_toxicity.json");
     			} else if (collection.equals("gate_cytometry")) {
     				String gateName = (String)ucf.get("gate_name");
     				File file = new File("/Users/myers/Downloads/"+gateName+"_gate_cytometry.json");
@@ -644,52 +683,52 @@ public class Cello2SBOL {
     				stream.close();
     				buffer.close();
     				sbh.attachFile(URI.create(databasePrefix + "/user/myers/CelloParts/"+gateName+"/1"), 
-    						"/Users/myers/Downloads/"+gateName+"_gate_cytometry.json");
+    						args[3] + gateName+"_gate_cytometry.json");
     			} else if (collection.equals("header")) {
-    				File file = new File("/Users/myers/Downloads/header.json");
+    				File file = new File(args[3] + "header.json");
     				FileOutputStream stream = new FileOutputStream(file);
     				BufferedOutputStream buffer = new BufferedOutputStream(stream);
     				stream.write(ucf.toJSONString().getBytes());
     				stream.close();
     				buffer.close();
-    				sbh.attachFile(URI.create(databasePrefix + "/user/myers/CelloParts/CelloParts_collection/1"), 
-    						"/Users/myers/Downloads/header.json");
+    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/CelloParts/CelloParts_collection/1"), 
+    						args[3] + "header.json");
     			} else if (collection.equals("measurement_std")) {
-    				File file = new File("/Users/myers/Downloads/measurement_std.json");
+    				File file = new File(args[3] + "measurement_std.json");
     				FileOutputStream stream = new FileOutputStream(file);
     				BufferedOutputStream buffer = new BufferedOutputStream(stream);
     				stream.write(ucf.toJSONString().getBytes());
     				stream.close();
     				buffer.close();
-    				sbh.attachFile(URI.create(databasePrefix + "/user/myers/CelloParts/CelloParts_collection/1"), 
-    						"/Users/myers/Downloads/measurement_std.json");
+    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/CelloParts/CelloParts_collection/1"), 
+    						args[3] + "measurement_std.json");
     			} else if (collection.equals("logic_constraints")) {
-    				File file = new File("/Users/myers/Downloads/logic_constraints.json");
+    				File file = new File(args[3] + "logic_constraints.json");
     				FileOutputStream stream = new FileOutputStream(file);
     				BufferedOutputStream buffer = new BufferedOutputStream(stream);
     				stream.write(ucf.toJSONString().getBytes());
     				stream.close();
     				buffer.close();
-    				sbh.attachFile(URI.create(databasePrefix + "/user/myers/CelloParts/CelloParts_collection/1"), 
-    						"/Users/myers/Downloads/logic_constraints.json");
+    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/CelloParts/CelloParts_collection/1"), 
+    						args[3] + "logic_constraints.json");
     			} else if (collection.equals("eugene_rules")) {
-    				File file = new File("/Users/myers/Downloads/eugene_rules.json");
+    				File file = new File(args[3] + "eugene_rules.json");
     				FileOutputStream stream = new FileOutputStream(file);
     				BufferedOutputStream buffer = new BufferedOutputStream(stream);
     				stream.write(ucf.toJSONString().getBytes());
     				stream.close();
     				buffer.close();
-    				sbh.attachFile(URI.create(databasePrefix + "/user/myers/CelloParts/CelloParts_collection/1"), 
-    						"/Users/myers/Downloads/eugene_rules.json");
+    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/CelloParts/CelloParts_collection/1"), 
+    						args[3] + "eugene_rules.json");
     			} else if (collection.equals("genetic_locations")) {
-    				File file = new File("/Users/myers/Downloads/genetic_locations.json");
+    				File file = new File(args[3] + "genetic_locations.json");
     				FileOutputStream stream = new FileOutputStream(file);
     				BufferedOutputStream buffer = new BufferedOutputStream(stream);
     				stream.write(ucf.toJSONString().getBytes());
     				stream.close();
     				buffer.close();
-    				sbh.attachFile(URI.create(databasePrefix + "/user/myers/CelloParts/CelloParts_collection/1"), 
-    						"/Users/myers/Downloads/genetic_locations.json");
+    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/CelloParts/CelloParts_collection/1"), 
+    						args[3] + "genetic_locations.json");
     			} else if (collection.equals("motif_library")) {
     				motif_library.add(ucf);
     			} else if (collection.equals("gates")) {
@@ -700,14 +739,14 @@ public class Cello2SBOL {
         			System.out.println(collection);
     			}
     		}
-			File file = new File("/Users/myers/Downloads/motif_library.json");
+			File file = new File(args[3] + "motif_library.json");
 			FileOutputStream stream = new FileOutputStream(file);
 			BufferedOutputStream buffer = new BufferedOutputStream(stream);
 			stream.write(motif_library.toJSONString().getBytes());
 			stream.close();
 			buffer.close();
-			sbh.attachFile(URI.create(databasePrefix + "/user/myers/CelloParts/CelloParts_collection/1"), 
-					"/Users/myers/Downloads/motif_library.json");
+			sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/CelloParts/CelloParts_collection/1"), 
+					args[3] + "motif_library.json");
         	System.out.println("Conversion, validation, and upload successful");
         }
 
