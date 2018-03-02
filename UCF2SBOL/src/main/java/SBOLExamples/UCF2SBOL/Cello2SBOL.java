@@ -23,10 +23,9 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.sbolstandard.core2.AccessType;
 import org.sbolstandard.core2.Activity;
-import org.sbolstandard.core2.Component;
+import org.sbolstandard.core2.Attachment;
 import org.sbolstandard.core2.ComponentDefinition;
 import org.sbolstandard.core2.DirectionType;
-import org.sbolstandard.core2.FunctionalComponent;
 import org.sbolstandard.core2.Interaction;
 import org.sbolstandard.core2.ModuleDefinition;
 import org.sbolstandard.core2.OrientationType;
@@ -45,7 +44,7 @@ public class Cello2SBOL {
 	
 	static String uriPrefix = "http://cellocad.org/"; 
 	static String version = "1";
-	static URI derivedFrom = URI.create("https://github.com/CIDARLAB/cello/blob/master/resources/UCF/Eco1C1G1T0.UCF.json");
+//	static URI derivedFrom = URI.create("https://github.com/CIDARLAB/cello/blob/master/resources/UCF/Eco1C1G1T0.UCF.json");
 	static String so = "http://identifiers.org/so/";
 	static String provNS = "http://www.w3.org/ns/prov#";
 	static String dcNS = "http://purl.org/dc/elements/1.1/";
@@ -58,78 +57,14 @@ public class Cello2SBOL {
     private static void createSensorsReporters(SBOLDocument doc) throws URISyntaxException,
     	SBOLValidationException, SBOLConversionException, IOException 
 	{ 
-		ComponentDefinition pTac_prom = createPromoter(doc, "pTac");
-		ComponentDefinition lacI_cds = createCDS(doc, "LacI");
-		createProtein(doc,"LacI",lacI_cds);
-		doc.createComponentDefinition("IPTG", version, ComponentDefinition.SMALL_MOLECULE);
-		createComplex(doc,"IPTG","LacI_protein");
-		createInhibition(doc,"LacI","pTac");
-
-		ComponentDefinition pTet_prom = createPromoter(doc, "pTet");
-		ComponentDefinition tetR_cds = createCDS(doc, "TetR");
-		createProtein(doc,"TetR",tetR_cds);
-		doc.createComponentDefinition("aTc", version, ComponentDefinition.SMALL_MOLECULE);
-		createComplex(doc,"aTc","TetR_protein");
-		createInhibition(doc,"TetR","pTet");
-		
-		ComponentDefinition pBAD_prom = createPromoter(doc, "pBAD");
-		ComponentDefinition araC_cds = createCDS(doc, "AraC");
-		createProtein(doc,"AraC",araC_cds);
-		doc.createComponentDefinition("Ara", version, ComponentDefinition.SMALL_MOLECULE);
-		createComplex(doc,"Ara","AraC_protein");
-		createActivation(doc,"Ara_AraC_protein","pBAD");
-		
-		//ComponentDefinition luxI_cds = createCDS(doc, "LuxI");
-		//createProtein(doc,"LuxI",luxI_cds);
-		
-		ComponentDefinition pLuxStar_prom = createPromoter(doc, "pLuxStar");
-		ComponentDefinition luxR_cds = createCDS(doc, "LuxR");
-		createProtein(doc,"LuxR",luxR_cds);
-		doc.createComponentDefinition("HSL", version, ComponentDefinition.SMALL_MOLECULE);
-		createComplex(doc,"HSL","LuxR_protein");
-		createActivation(doc,"HSL_LuxR_protein","pLuxStar");
-		
-		ComponentDefinition gfp_cds = createCDS(doc, "GFP");
-		createProtein(doc,"GFP",gfp_cds);
-		ComponentDefinition rfp_cds = createCDS(doc, "RFP");
-		createProtein(doc,"RFP",rfp_cds);
-		ComponentDefinition bfp_cds = createCDS(doc, "BFP");
-		createProtein(doc,"BFP",bfp_cds);
-		ComponentDefinition yfp_cds = createCDS(doc, "YFP");
-		createProtein(doc,"YFP",yfp_cds);
 
 		ComponentDefinition pCONST_prom = createPromoter(doc, "pCONST");
-		
-		//creating promoter Sequences 
 		String pCONST_prom_sequences = "GATAAGTCCCTAACTTTTACAGCTAGCTCAGTCCTAGGTATTATGCTAGC";
 		Sequence pCONST_prom_seq= doc.createSequence("pCONST_sequence", version, pCONST_prom_sequences, Sequence.IUPAC_DNA);
 		pCONST_prom.addSequence(pCONST_prom_seq);
-		
-		String pTac_prom_sequences = "AACGATCGTTGGCTGTGTTGACAATTAATCATCGGCTCGTATAATGTGTGGAATTGTGAGCGCTCACAATT";
-		Sequence pTac_prom_seq= doc.createSequence("pTac_sequence", version, pTac_prom_sequences, Sequence.IUPAC_DNA);
-		pTac_prom.addSequence(pTac_prom_seq);
 
-		String pTet_prom_sequences = "TACTCCACCGTTGGCTTTTTTCCCTATCAGTGATAGAGATTGACATCCCTATCAGTGATAGAGATAATGAGCAC";
-		Sequence pTet_prom_seq= doc.createSequence("pTet_sequence", version, pTet_prom_sequences, Sequence.IUPAC_DNA);
-		pTet_prom.addSequence(pTet_prom_seq);
-
-		String pBAD_prom_sequences = "ACTTTTCATACTCCCGCCATTCAGAGAAGAAACCAATTGTCCATATTGCATCAGACATTGCCGTCACTGCGTCTTTTACTGGCTCTTCTCGCTAACCAAACCGGTAACCCCGCTTATTAAAAGCATTCTGTAACAAAGCGGGACCAAAGCCATGACAAAAACGCGTAACAAAAGTGTCTATAATCACGGCAGAAAAGTCCACATTGATTATTTGCACGGCGTCACACTTTGCTATGCCATAGCATTTTTATCCATAAGATTAGCGGATCCTACCTGACGCTTTTTATCGCAACTCTCTACTGTTTCTCCATACCCGTTTTTTTGGGCTAGC";
-		Sequence pBAD_prom_seq= doc.createSequence("pBAD_sequence", version, pBAD_prom_sequences, Sequence.IUPAC_DNA);
-		pBAD_prom.addSequence(pBAD_prom_seq);
-
-		String pLuxStar_prom_sequences = "ATAGCTTCTTACCGGACCTGTAGGATCGTACAGGTTTACGCAAGAAAATGGTTTGTTACTTTCGAATAAA";
-		Sequence pLuxStar_prom_seq= doc.createSequence("pLuxStar_sequence", version, pLuxStar_prom_sequences, Sequence.IUPAC_DNA);
-		pLuxStar_prom.addSequence(pLuxStar_prom_seq);
-		
-		//creating input sensor sequences
-		String araC_cds_sequences = "atggctgaagcgcaaaatgatcccctgctgccgggatactcgtttaatgcccatctggtggcgggtttaacgccgattgaggccaacggttatctcgatttttttatcgaccgaccgctgggaatgaaaggttatattctcaatctcaccattcgcggtcagggggtggtgaaaaatcagggacgagaatttgtttgccgaccgggtgatattttgctgttcccgccaggagagattcatcactacggtcgtcatccggaggctcgcgaatggtatcaccagtgggtttactttcgtccgcgcgcctactggcatgaatggcttaactggccgtcaatatttgccaatacggggttctttcgcccggatgaagcgcaccagccgcatttcagcgacctgtttgggcaaatcattaacgccgggcaaggggaagggcgctattcggagctgctggcgataaatctgcttgagcaattgttactgcggcgcatggaagcgattaacgagtcgctccatccaccgatggataatcgggtacgcgaggcttgtcagtacatcagcgatcacctggcagacagcaattttgatatcgccagcgtcgcacagcatgtttgcttgtcgccgtcgcgtctgtcacatcttttccgccagcagttagggattagcgtcttaagctggcgcgaggaccaacgtatcagccaggcgaagctgcttttgagcaccacccggatgcctatcgccaccgtcggtcgcaatgttggttttgacgatcaactctatttctcgcgggtatttaaaaaatgcaccggggccagcccgagcgagttccgtgccggttgtgaagaaaaagtgaatgatgtagccgtcaagttgtcataa"; 
-		Sequence araC_cds_seq = doc.createSequence("araC_sequence", version, araC_cds_sequences, Sequence.IUPAC_DNA);
-		araC_cds.addSequence(araC_cds_seq);
-
-		String tetR_cds_sequences = "atgtccagattagataaaagtaaagtgattaacagcgcattagagctgcttaatgaggtcggaatcgaaggtttaacaacccgtaaactcgcccagaagctaggtgtagagcagcctacattgtattggcatgtaaaaaataagcgggctttgctcgacgccttagccattgagatgttagataggcaccatactcacttttgccctttagaaggggaaagctggcaagattttttacgtaataacgctaaaagttttagatgtgctttactaagtcatcgcgatggagcaaaagtacatttaggtacacggcctacagaaaaacagtatgaaactctcgaaaatcaattagcctttttatgccaacaaggtttttcactagagaatgcattatatgcactcagcgctgtggggcattttactttaggttgcgtattggaagatcaagagcatcaagtcgctaaagaagaaagggaaacacctactactgatagtatgccgccattattacgacaagctatcgaattatttgatcaccaaggtgcagagccagccttcttattcggccttgaattgatcatatgcggattagaaaaacaacttaaatgtgaaagtgggtcctaa";
-		Sequence tetR_cds_seq = doc.createSequence("tetR_sequence", version, tetR_cds_sequences, Sequence.IUPAC_DNA);
-		tetR_cds.addSequence(tetR_cds_seq);
-
+		ComponentDefinition pTac_prom = createPromoter(doc, "pTac");
+		ComponentDefinition lacI_cds = createCDS(doc, "LacI");
 		String lacI_cds_sequences = "atgaaaccagtaacgttatacgatgtcgcagagtatgccggtgtctcttatcagaccgtttcccgcgt"+
 				"ggtgaaccaggccagccacgtttctgcgaaaacgcgggaaaaagtggaagcggcgatggcggagctgaattacattcccaaccgcgtg"+
 				"gcacaacaactggcgggcaaacagtcgttgctgattggcgttgccacctccagtctggccctgcacgcgccgtcgcaaattgtcgcgg"+
@@ -145,23 +80,100 @@ public class Cello2SBOL {
 				"taatgcagctggcacgacaggtttcccgactggaaagcgggcagtgataa";
 		Sequence lacI_cds_seq = doc.createSequence("lacI_sequence", version, lacI_cds_sequences, Sequence.IUPAC_DNA);
 		lacI_cds.addSequence(lacI_cds_seq);
+		createProtein(doc,"LacI",lacI_cds);
+		doc.createComponentDefinition("IPTG", version, ComponentDefinition.SMALL_MOLECULE);
+		createComplex(doc,"IPTG","LacI_protein");
+		createInhibition(doc,"LacI","pTac");
+		String pTac_prom_sequences = "AACGATCGTTGGCTGTGTTGACAATTAATCATCGGCTCGTATAATGTGTGGAATTGTGAGCGCTCACAATT";
+		Sequence pTac_prom_seq= doc.createSequence("pTac_sequence", version, pTac_prom_sequences, Sequence.IUPAC_DNA);
+		pTac_prom.addSequence(pTac_prom_seq);
+
+		ComponentDefinition pTet_prom = createPromoter(doc, "pTet");
+		ComponentDefinition tetR_cds = createCDS(doc, "TetR");
+		String tetR_cds_sequences = "atgtccagattagataaaagtaaagtgattaacagcgcattagagctgcttaatgaggtcggaatcgaaggtttaacaacccgtaaactcgcccagaagctaggtgtagagcagcctacattgtattggcatgtaaaaaataagcgggctttgctcgacgccttagccattgagatgttagataggcaccatactcacttttgccctttagaaggggaaagctggcaagattttttacgtaataacgctaaaagttttagatgtgctttactaagtcatcgcgatggagcaaaagtacatttaggtacacggcctacagaaaaacagtatgaaactctcgaaaatcaattagcctttttatgccaacaaggtttttcactagagaatgcattatatgcactcagcgctgtggggcattttactttaggttgcgtattggaagatcaagagcatcaagtcgctaaagaagaaagggaaacacctactactgatagtatgccgccattattacgacaagctatcgaattatttgatcaccaaggtgcagagccagccttcttattcggccttgaattgatcatatgcggattagaaaaacaacttaaatgtgaaagtgggtcctaa";
+		Sequence tetR_cds_seq = doc.createSequence("tetR_sequence", version, tetR_cds_sequences, Sequence.IUPAC_DNA);
+		tetR_cds.addSequence(tetR_cds_seq);
+		createProtein(doc,"TetR",tetR_cds);
+		doc.createComponentDefinition("aTc", version, ComponentDefinition.SMALL_MOLECULE);
+		createComplex(doc,"aTc","TetR_protein");
+		createInhibition(doc,"TetR","pTet");
+		String pTet_prom_sequences = "TACTCCACCGTTGGCTTTTTTCCCTATCAGTGATAGAGATTGACATCCCTATCAGTGATAGAGATAATGAGCAC";
+		Sequence pTet_prom_seq= doc.createSequence("pTet_sequence", version, pTet_prom_sequences, Sequence.IUPAC_DNA);
+		pTet_prom.addSequence(pTet_prom_seq);
 		
-		//creating output Sequences 
-		String yfp_sequence = "CTGAAGCTGTCACCGGATGTGCTTTCCGGTCTGATGAGTCCGTGAGGACGAAACAGCCTCTACAAATAATTTTGTTTAATACTAGAGAAAGAGGGGAAATACTAGATGGTGAGCAAGGGCGAGGAGCTGTTCACCGGGGTGGTGCCCATCCTGGTCGAGCTGGACGGCGACGTAAACGGCCACAAGTTCAGCGTGTCCGGCGAGGGCGAGGGCGATGCCACCTACGGCAAGCTGACCCTGAAGTTCATCTGCACCACAGGCAAGCTGCCCGTGCCCTGGCCCACCCTCGTGACCACCTTCGGCTACGGCCTGCAATGCTTCGCCCGCTACCCCGACCACATGAAGCTGCACGACTTCTTCAAGTCCGCCATGCCCGAAGGCTACGTCCAGGAGCGCACCATCTTCTTCAAGGACGACGGCAACTACAAGACCCGCGCCGAGGTGAAGTTCGAGGGCGACACCCTGGTGAACCGCATCGAGCTGAAGGGCATCGACTTCAAGGAGGACGGCAACATCCTGGGGCACAAGCTGGAGTACAACTACAACAGCCACAACGTCTATATCATGGCCGACAAGCAGAAGAACGGCATCAAGGTGAACTTCAAGATCCGCCACAACATCGAGGACGGCAGCGTGCAGCTCGCCGACCACTACCAGCAGAACACCCCAATCGGCGACGGCCCCGTGCTGCTGCCCGACAACCACTACCTTAGCTACCAGTCCGCCCTGAGCAAAGACCCCAACGAGAAGCGCGATCACATGGTCCTGCTGGAGTTCGTGACCGCCGCCGGGATCACTCTCGGCATGGACGAGCTGTACAAGTAACTCGGTACCAAATTCCAGAAAAGAGGCCTCCCGAAAGGGGGGCCTTTTTTCGTTTTGGTCC";
-		Sequence yfp_seq= doc.createSequence("YFP_protein_sequence", version, yfp_sequence, Sequence.IUPAC_DNA);
-		yfp_cds.addSequence(yfp_seq);
-
-		String rfp_sequence = "CTGAAGTGGTCGTGATCTGAAACTCGATCACCTGATGAGCTCAAGGCAGAGCGAAACCACCTCTACAAATAATTTTGTTTAATACTAGAGTCACACAGGAAAGTACTAGATGGCTTCCTCCGAAGACGTTATCAAAGAGTTCATGCGTTTCAAAGTTCGTATGGAAGGTTCCGTTAACGGTCACGAGTTCGAAATCGAAGGTGAAGGTGAAGGTCGTCCGTACGAAGGTACCCAGACCGCTAAACTGAAAGTTACCAAAGGTGGTCCGCTGCCGTTCGCTTGGGACATCCTGTCCCCGCAGTTCCAGTACGGTTCCAAAGCTTACGTTAAACACCCGGCTGACATCCCGGACTACCTGAAACTGTCCTTCCCGGAAGGTTTCAAATGGGAACGTGTTATGAACTTCGAAGACGGTGGTGTTGTTACCGTTACCCAGGACTCCTCCCTGCAAGACGGTGAGTTCATCTACAAAGTTAAACTGCGTGGTACCAACTTCCCGTCCGACGGTCCGGTTATGCAGAAAAAAACCATGGGTTGGGAAGCTTCCACCGAACGTATGTACCCGGAAGACGGTGCTCTGAAAGGTGAAATCAAAATGCGTCTGAAACTGAAAGACGGTGGTCACTACGACGCTGAAGTTAAAACCACCTACATGGCTAAAAAACCGGTTCAGCTGCCGGGTGCTTACAAAACCGACATCAAACTGGACATCACCTCCCACAACGAAGACTACACCATCGTTGAACAGTACGAACGTGCTGAAGGTCGTCACTCCACCGGTGCTTAATAACAGATAAAAAAAATCCTTAGCTTTCGCTAAGGATGATTTCT";
-		Sequence rfp_seq= doc.createSequence("RFP_protein_sequence", version, rfp_sequence, Sequence.IUPAC_DNA);
-		rfp_cds.addSequence(rfp_seq);
-
-		String bfp_sequence = "CTGAAGTTCCAGTCGAGACCTGAAGTGGGTTTCCTGATGAGGCTGTGGAGAGAGCGAAAGCTTTACTCCCGCACAAGCCGAAACTGGAACCTCTACAAATAATTTTGTTTAAGAGTCACACAGGAAAGTACTAGATGAGCGAGCTGATTAAGGAGAACATGCACATGAAGCTGTACATGGAGGGCACCGTGGACAACCATCACTTCAAGTGCACATCCGAGGGCGAAGGCAAGCCCTACGAGGGCACCCAGACCATGAGAATCAAGGTGGTCGAGGGCGGCCCTCTCCCCTTCGCCTTCGACATCCTGGCTACTAGCTTCCTCTACGGCAGCAAGACCTTCATCAACCACACCCAGGGCATCCCCGACTTCTTCAAGCAGTCCTTCCCTGAGGGCTTCACATGGGAGAGAGTCACCACATACGAAGATGGGGGCGTGCTGACCGCTACCCAGGACACCAGCCTCCAGGACGGCTGCCTCATCTACAACGTCAAGATCAGAGGGGTGAACTTCACATCCAACGGCCCTGTGATGCAGAAGAAAACACTCGGCTGGGAGGCCTTCACCGAGACGCTGTACCCCGCTGACGGCGGCCTGGAAGGCAGAAACGACATGGCCCTGAAGCTCGTGGGCGGGAGCCATCTGATCGCAAACATCAAGACCACATATAGATCCAAGAAACCCGCTAAGAACCTCAAGATGCCTGGCGTCTACTATGTGGACTACAGACTGGAAAGAATCAAGGAGGCCAACAACGAGACCTACGTCGAGCAGCACGAGGTGGCAGTGGCCAGATACTGCGACCTCCCTAGCAAACTGGGGCACTAACCAGGCATCAAATAAAACGAAAGGCTCAGTCGAAAGACTGGGCCTTTCGTTTTATCTGTTGTTTGTCGGTGAACGCTCTCTACTAGAGTCACACTGGCTCACCTTCGGGTGGGCCTTTCTGCGTTTATA";
-		Sequence bfp_seq= doc.createSequence("BFP_protein_sequence", version, bfp_sequence, Sequence.IUPAC_DNA);
-		bfp_cds.addSequence(bfp_seq);
-
+		ComponentDefinition pBAD_prom = createPromoter(doc, "pBAD");
+		ComponentDefinition araC_cds = createCDS(doc, "AraC");
+		String araC_cds_sequences = "atggctgaagcgcaaaatgatcccctgctgccgggatactcgtttaatgcccatctggtggcgggtttaacgccgattgaggccaacggttatctcgatttttttatcgaccgaccgctgggaatgaaaggttatattctcaatctcaccattcgcggtcagggggtggtgaaaaatcagggacgagaatttgtttgccgaccgggtgatattttgctgttcccgccaggagagattcatcactacggtcgtcatccggaggctcgcgaatggtatcaccagtgggtttactttcgtccgcgcgcctactggcatgaatggcttaactggccgtcaatatttgccaatacggggttctttcgcccggatgaagcgcaccagccgcatttcagcgacctgtttgggcaaatcattaacgccgggcaaggggaagggcgctattcggagctgctggcgataaatctgcttgagcaattgttactgcggcgcatggaagcgattaacgagtcgctccatccaccgatggataatcgggtacgcgaggcttgtcagtacatcagcgatcacctggcagacagcaattttgatatcgccagcgtcgcacagcatgtttgcttgtcgccgtcgcgtctgtcacatcttttccgccagcagttagggattagcgtcttaagctggcgcgaggaccaacgtatcagccaggcgaagctgcttttgagcaccacccggatgcctatcgccaccgtcggtcgcaatgttggttttgacgatcaactctatttctcgcgggtatttaaaaaatgcaccggggccagcccgagcgagttccgtgccggttgtgaagaaaaagtgaatgatgtagccgtcaagttgtcataa"; 
+		Sequence araC_cds_seq = doc.createSequence("araC_sequence", version, araC_cds_sequences, Sequence.IUPAC_DNA);
+		araC_cds.addSequence(araC_cds_seq);
+		createProtein(doc,"AraC",araC_cds);
+		doc.createComponentDefinition("Ara", version, ComponentDefinition.SMALL_MOLECULE);
+		createComplex(doc,"Ara","AraC_protein");
+		createActivation(doc,"Ara_AraC_protein","pBAD");
+		String pBAD_prom_sequences = "ACTTTTCATACTCCCGCCATTCAGAGAAGAAACCAATTGTCCATATTGCATCAGACATTGCCGTCACTGCGTCTTTTACTGGCTCTTCTCGCTAACCAAACCGGTAACCCCGCTTATTAAAAGCATTCTGTAACAAAGCGGGACCAAAGCCATGACAAAAACGCGTAACAAAAGTGTCTATAATCACGGCAGAAAAGTCCACATTGATTATTTGCACGGCGTCACACTTTGCTATGCCATAGCATTTTTATCCATAAGATTAGCGGATCCTACCTGACGCTTTTTATCGCAACTCTCTACTGTTTCTCCATACCCGTTTTTTTGGGCTAGC";
+		Sequence pBAD_prom_seq= doc.createSequence("pBAD_sequence", version, pBAD_prom_sequences, Sequence.IUPAC_DNA);
+		pBAD_prom.addSequence(pBAD_prom_seq);
+		
+		//ComponentDefinition luxI_cds = createCDS(doc, "LuxI");
+		//createProtein(doc,"LuxI",luxI_cds);
+		
+		ComponentDefinition pLuxStar_prom = createPromoter(doc, "pLuxStar");
+		ComponentDefinition luxR_cds = createCDS(doc, "LuxR");
+		createProtein(doc,"LuxR",luxR_cds);
+		doc.createComponentDefinition("HSL", version, ComponentDefinition.SMALL_MOLECULE);
+		createComplex(doc,"HSL","LuxR_protein");
+		createActivation(doc,"HSL_LuxR_protein","pLuxStar");
+		String pLuxStar_prom_sequences = "ATAGCTTCTTACCGGACCTGTAGGATCGTACAGGTTTACGCAAGAAAATGGTTTGTTACTTTCGAATAAA";
+		Sequence pLuxStar_prom_seq= doc.createSequence("pLuxStar_sequence", version, pLuxStar_prom_sequences, Sequence.IUPAC_DNA);
+		pLuxStar_prom.addSequence(pLuxStar_prom_seq);
+		
+		ComponentDefinition gfp_cds = createCDS(doc, "GFP");
+		createProtein(doc,"GFP",gfp_cds);
 		String gfp_sequence = "CTGAAGTTCCAGTCGAGACCTGAAGTGGGTTTCCTGATGAGGCTGTGGAGAGAGCGAAAGCTTTACTCCCGCACAAGCCGAAACTGGAACCTCTACAAATAATTTTGTTTAAGAGTCACACAGGAAAGTACTAGATGAGCGAGCTGATTAAGGAGAACATGCACATGAAGCTGTACATGGAGGGCACCGTGGACAACCATCACTTCAAGTGCACATCCGAGGGCGAAGGCAAGCCCTACGAGGGCACCCAGACCATGAGAATCAAGGTGGTCGAGGGCGGCCCTCTCCCCTTCGCCTTCGACATCCTGGCTACTAGCTTCCTCTACGGCAGCAAGACCTTCATCAACCACACCCAGGGCATCCCCGACTTCTTCAAGCAGTCCTTCCCTGAGGGCTTCACATGGGAGAGAGTCACCACATACGAAGATGGGGGCGTGCTGACCGCTACCCAGGACACCAGCCTCCAGGACGGCTGCCTCATCTACAACGTCAAGATCAGAGGGGTGAACTTCACATCCAACGGCCCTGTGATGCAGAAGAAAACACTCGGCTGGGAGGCCTTCACCGAGACGCTGTACCCCGCTGACGGCGGCCTGGAAGGCAGAAACGACATGGCCCTGAAGCTCGTGGGCGGGAGCCATCTGATCGCAAACATCAAGACCACATATAGATCCAAGAAACCCGCTAAGAACCTCAAGATGCCTGGCGTCTACTATGTGGACTACAGACTGGAAAGAATCAAGGAGGCCAACAACGAGACCTACGTCGAGCAGCACGAGGTGGCAGTGGCCAGATACTGCGACCTCCCTAGCAAACTGGGGCACTAACCAGGCATCAAATAAAACGAAAGGCTCAGTCGAAAGACTGGGCCTTTCGTTTTATCTGTTGTTTGTCGGTGAACGCTCTCTACTAGAGTCACACTGGCTCACCTTCGGGTGGGCCTTTCTGCGTTTATA";
 		Sequence gfp_seq= doc.createSequence("GFP_protein_sequence", version, gfp_sequence, Sequence.IUPAC_DNA);
 		gfp_cds.addSequence(gfp_seq);
+
+		ComponentDefinition rfp_cds = createCDS(doc, "RFP");
+		createProtein(doc,"RFP",rfp_cds);
+		String rfp_sequence = "CTGAAGTGGTCGTGATCTGAAACTCGATCACCTGATGAGCTCAAGGCAGAGCGAAACCACCTCTACAAATAATTTTGTTTAATACTAGAGTCACACAGGAAAGTACTAGATGGCTTCCTCCGAAGACGTTATCAAAGAGTTCATGCGTTTCAAAGTTCGTATGGAAGGTTCCGTTAACGGTCACGAGTTCGAAATCGAAGGTGAAGGTGAAGGTCGTCCGTACGAAGGTACCCAGACCGCTAAACTGAAAGTTACCAAAGGTGGTCCGCTGCCGTTCGCTTGGGACATCCTGTCCCCGCAGTTCCAGTACGGTTCCAAAGCTTACGTTAAACACCCGGCTGACATCCCGGACTACCTGAAACTGTCCTTCCCGGAAGGTTTCAAATGGGAACGTGTTATGAACTTCGAAGACGGTGGTGTTGTTACCGTTACCCAGGACTCCTCCCTGCAAGACGGTGAGTTCATCTACAAAGTTAAACTGCGTGGTACCAACTTCCCGTCCGACGGTCCGGTTATGCAGAAAAAAACCATGGGTTGGGAAGCTTCCACCGAACGTATGTACCCGGAAGACGGTGCTCTGAAAGGTGAAATCAAAATGCGTCTGAAACTGAAAGACGGTGGTCACTACGACGCTGAAGTTAAAACCACCTACATGGCTAAAAAACCGGTTCAGCTGCCGGGTGCTTACAAAACCGACATCAAACTGGACATCACCTCCCACAACGAAGACTACACCATCGTTGAACAGTACGAACGTGCTGAAGGTCGTCACTCCACCGGTGCTTAATAACAGATAAAAAAAATCCTTAGCTTTCGCTAAGGATGATTTCT";
+		Sequence rfp_seq= doc.createSequence("RFP_protein_sequence", version, rfp_sequence, Sequence.IUPAC_DNA);
+		rfp_cds.addSequence(rfp_seq);
+		
+		ComponentDefinition bfp_cds = createCDS(doc, "BFP");
+		createProtein(doc,"BFP",bfp_cds);
+		String bfp_sequence = "CTGAAGTTCCAGTCGAGACCTGAAGTGGGTTTCCTGATGAGGCTGTGGAGAGAGCGAAAGCTTTACTCCCGCACAAGCCGAAACTGGAACCTCTACAAATAATTTTGTTTAAGAGTCACACAGGAAAGTACTAGATGAGCGAGCTGATTAAGGAGAACATGCACATGAAGCTGTACATGGAGGGCACCGTGGACAACCATCACTTCAAGTGCACATCCGAGGGCGAAGGCAAGCCCTACGAGGGCACCCAGACCATGAGAATCAAGGTGGTCGAGGGCGGCCCTCTCCCCTTCGCCTTCGACATCCTGGCTACTAGCTTCCTCTACGGCAGCAAGACCTTCATCAACCACACCCAGGGCATCCCCGACTTCTTCAAGCAGTCCTTCCCTGAGGGCTTCACATGGGAGAGAGTCACCACATACGAAGATGGGGGCGTGCTGACCGCTACCCAGGACACCAGCCTCCAGGACGGCTGCCTCATCTACAACGTCAAGATCAGAGGGGTGAACTTCACATCCAACGGCCCTGTGATGCAGAAGAAAACACTCGGCTGGGAGGCCTTCACCGAGACGCTGTACCCCGCTGACGGCGGCCTGGAAGGCAGAAACGACATGGCCCTGAAGCTCGTGGGCGGGAGCCATCTGATCGCAAACATCAAGACCACATATAGATCCAAGAAACCCGCTAAGAACCTCAAGATGCCTGGCGTCTACTATGTGGACTACAGACTGGAAAGAATCAAGGAGGCCAACAACGAGACCTACGTCGAGCAGCACGAGGTGGCAGTGGCCAGATACTGCGACCTCCCTAGCAAACTGGGGCACTAACCAGGCATCAAATAAAACGAAAGGCTCAGTCGAAAGACTGGGCCTTTCGTTTTATCTGTTGTTTGTCGGTGAACGCTCTCTACTAGAGTCACACTGGCTCACCTTCGGGTGGGCCTTTCTGCGTTTATA";
+		Sequence bfp_seq= doc.createSequence("BFP_protein_sequence", version, bfp_sequence, Sequence.IUPAC_DNA);
+		bfp_cds.addSequence(bfp_seq);
+		
+		ComponentDefinition yfp_cds = createCDS(doc, "YFP");
+		createProtein(doc,"YFP",yfp_cds);
+		String yfp_sequence = "CTGAAGCTGTCACCGGATGTGCTTTCCGGTCTGATGAGTCCGTGAGGACGAAACAGCCTCTACAAATAATTTTGTTTAATACTAGAGAAAGAGGGGAAATACTAGATGGTGAGCAAGGGCGAGGAGCTGTTCACCGGGGTGGTGCCCATCCTGGTCGAGCTGGACGGCGACGTAAACGGCCACAAGTTCAGCGTGTCCGGCGAGGGCGAGGGCGATGCCACCTACGGCAAGCTGACCCTGAAGTTCATCTGCACCACAGGCAAGCTGCCCGTGCCCTGGCCCACCCTCGTGACCACCTTCGGCTACGGCCTGCAATGCTTCGCCCGCTACCCCGACCACATGAAGCTGCACGACTTCTTCAAGTCCGCCATGCCCGAAGGCTACGTCCAGGAGCGCACCATCTTCTTCAAGGACGACGGCAACTACAAGACCCGCGCCGAGGTGAAGTTCGAGGGCGACACCCTGGTGAACCGCATCGAGCTGAAGGGCATCGACTTCAAGGAGGACGGCAACATCCTGGGGCACAAGCTGGAGTACAACTACAACAGCCACAACGTCTATATCATGGCCGACAAGCAGAAGAACGGCATCAAGGTGAACTTCAAGATCCGCCACAACATCGAGGACGGCAGCGTGCAGCTCGCCGACCACTACCAGCAGAACACCCCAATCGGCGACGGCCCCGTGCTGCTGCCCGACAACCACTACCTTAGCTACCAGTCCGCCCTGAGCAAAGACCCCAACGAGAAGCGCGATCACATGGTCCTGCTGGAGTTCGTGACCGCCGCCGGGATCACTCTCGGCATGGACGAGCTGTACAAGTAACTCGGTACCAAATTCCAGAAAAGAGGCCTCCCGAAAGGGGGGCCTTTTTTCGTTTTGGTCC";
+		Sequence yfp_seq= doc.createSequence("YFP_protein_sequence", version, yfp_sequence, Sequence.IUPAC_DNA);
+		yfp_cds.addSequence(yfp_seq);
+		
+		ComponentDefinition sigmaK1FR_cds = createCDS(doc, "SigmaK1FR");
+		createProtein(doc,"SigmaK1FR",sigmaK1FR_cds);
+		String sigmaK1FR_sequence = "ATGAGCATCGCGGCGACCCTGGAGAACGATCTGGCGCGTCTGGAAAACGAAAACGCTCGTCTCGAAAAAGACATCGCGAACCTGGAACGTGACCTGGCGAAACTGGAGCGTGAAGAAGCGTACTTCGGAGGTTCAGGTGGTAAGAACACTGGTGAAATCTCTGAGAAAGTCAAGCTGGGCACTAAGGCACTGGCTGGTCAATGGCTGGCTTACGGTGTTACTCGCAGTGTGACTAAGCGTTCAGTCATGACGCTGGCTTACGGGTCCAAAGAGTTCGGCTTCCGTCAACAAGTGCTGGAAGATACCATTCAGCCAGCTATTGATTCCGGCAAGGGTCTGATGTTCACTCAGCCGAATCAGGCTGCTGGATACATGGCTAAGCTGATTTGGGAATCTGTGAGCGTGACGGTGGTAGCTGCGGTTGAAGCAATGAACTGGCTTAAGTCTGCTGCTAAGCTGCTGGCTGCTGAGGTCAAAGATAAGAAGACTGGAGAGATTCTTCGCAAGCGTTGCGCTGTGCATTGGGTAACTCCTGATGGTTTCCCTGTGTGGCAGGAATACAAGAAGCCTATTCAGACGCGCTTGAACCTGAGGTTCCTCGGTTCGTTCAACCTCCAGCCGACCGTCAACACCAACAAAGATAGCGAGATTGATGCACACAAACAGGAGTCTGGTATCGCTCCTAACTTTGTACACAGCCAAGACGGTAGCCACCTTCGTAAGACTGTAGTGTGGGCACACGAGAAGTACGGAATCGAATCTTTTGCACTGATTCACGACTCCTTCGGTACGATTCCGGCTGACGCTGCGAACCTGTTCAAAGCAGTGCGCGAAACTATGGTTGACACATATGAGTCTTGTGATGTACTGGCTGATTTCTACGACCAGTTCGCTGACCAGTTGCACGAGTCTCAATTGGACAAAATGCCAGCACTTCCGGCTAAAGGTAACTTGAACCTCCGTGACATCTTAGAGTCGGACTTCGCGTTCGCG";
+		Sequence sigmaK1FR_seq= doc.createSequence("SigmaK1FR_protein_sequence", version, sigmaK1FR_sequence, Sequence.IUPAC_DNA);
+		sigmaK1FR_cds.addSequence(sigmaK1FR_seq);
+		
+		ComponentDefinition sigmaT3_cds = createCDS(doc, "SigmaT3");
+		createProtein(doc,"SigmaT3",sigmaT3_cds);
+		String sigmaT3_sequence = "ATGAGCATCGCGGCGACCCTGGAGAACGATCTGGCGCGTCTGGAAAACGAAAACGCTCGTCTCGAAAAAGACATCGCGAACCTGGAACGTGACCTGGCGAAACTGGAGCGTGAAGAAGCGTACTTCGGAGGTTCAGGTGGTAAGAACACTGGTGAAATCTCTGAGAAAGTCAAGCTGGGCACTAAGGCACTGGCTGGTCAATGGCTGGCTTACGGTGTTACTCGCAGTGTGACTAAGCGTTCAGTCATGACGCTGGCTTACGGGTCCAAAGAGTTCGGCTTCCGTCAACAAGTGCTGGAAGATACCATTCAGCCAGCTATTGATTCCGGCAAGGGTCTGATGTTCACTCAGCCGAATCAGGCTGCTGGATACATGGCTAAGCTGATTTGGGAATCTGTGAGCGTGACGGTGGTAGCTGCGGTTGAAGCAATGAACTGGCTTAAGTCTGCTGCTAAGCTGCTGGCTGCTGAGGTCAAAGATAAGAAGACTGGAGAGATTCTTCGCAAGCGTTGCGCTGTGCATTGGGTAACTCCTGATGGTTTCCCTGTGTGGCAGGAATACAAGAAGCCTATTCAGAAGCGCCTGGACATGATTTTCTTGGGTCAATTTCGCTTGCAACCTACCATTAACACCAACAAAGATAGCGAGATTGATGCACACAAACAGGAGTCTGGTATCGCTCCTAACTTTGTACACAGCCAAGACGGTAGCCACCTTCGTAAGACTGTAGTGTGGGCACACGAGAAGTACGGAATCGAATCTTTTGCACTGATTCACGACTCCTTCGGTACGATTCCGGCTGACGCTGCGAACCTGTTCAAAGCAGTGCGCGAAACTATGGTTGACACATATGAGTCTTGTGATGTACTGGCTGATTTCTACGACCAGTTCGCTGACCAGTTGCACGAGTCTCAATTGGACAAAATGCCAGCACTTCCGGCTAAAGGTAACTTGAACCTCCGTGACATCTTAGAGTCGGACTTCGCGTTCGCG";
+		Sequence sigmaT3_seq= doc.createSequence("SigmaT3_protein_sequence", version, sigmaT3_sequence, Sequence.IUPAC_DNA);
+		sigmaT3_cds.addSequence(sigmaT3_seq);
+		
+		ComponentDefinition sigmaT7_cds = createCDS(doc, "SigmaT7");
+		createProtein(doc,"SigmaT7",sigmaT7_cds);
+		String sigmaT7_sequence = "ATGAGCATCGCGGCGACCCTGGAGAACGATCTGGCGCGTCTGGAAAACGAAAACGCTCGTCTCGAAAAAGACATCGCGAACCTGGAACGTGACCTGGCGAAACTGGAGCGTGAAGAAGCGTACTTCGGAGGTTCAGGTGGTAAGAACACTGGTGAAATCTCTGAGAAAGTCAAGCTGGGCACTAAGGCACTGGCTGGTCAATGGCTGGCTTACGGTGTTACTCGCAGTGTGACTAAGAGTTCAGTCATGACGCTGGCTTACGGGTCCAAAGAGTTCGGCTTCCGTCAACAAGTGCTGGAAGATACCATTCAGCCAGCTATTGATTCCGGCAAGGGTCTGATGTTCACTCAGCCGAATCAGGCTGCTGGATACATGGCTAAGCTGATTTGGGAATCTGTGAGCGTGACGGTGGTAGCTGCGGTTGAAGCAATGAACTGGCTTAAGTCTGCTGCTAAGCTGCTGGCTGCTGAGGTCAAAGATAAGAAGACTGGAGAGATTCTTCGCAAGCGTTGCGCTGTGCATTGGGTAACTCCTGATGGTTTCCCTGTGTGGCAGGAATACAAGAAGCCTATTCAGACGCGCTTGAACCTGATGTTCCTCGGTCAGTTCCGCTTACAGCCTACCATTAACACCAACAAAGATAGCGAGATTGATGCACACAAACAGGAGTCTGGTATCGCTCCTAACTTTGTACACAGCCAAGACGGTAGCCACCTTCGTAAGACTGTAGTGTGGGCACACGAGAAGTACGGAATCGAATCTTTTGCACTGATTCACGACTCCTTCGGTACGATTCCGGCTGACGCTGCGAACCTGTTCAAAGCAGTGCGCGAAACTATGGTTGACACATATGAGTCTTGTGATGTACTGGCTGATTTCTACGACCAGTTCGCTGACCAGTTGCACGAGTCTCAATTGGACAAAATGCCAGCACTTCCGGCTAAAGGTAACTTGAACCTCCGTGACATCTTAGAGTCGGACTTCGCGTTCGCG";
+		Sequence sigmaT7_seq= doc.createSequence("SigmaT7_protein_sequence", version, sigmaT7_sequence, Sequence.IUPAC_DNA);
+		sigmaT7_cds.addSequence(sigmaT7_seq);
+
+		ComponentDefinition sigmaCGG_cds = createCDS(doc, "SigmaCGG");
+		createProtein(doc,"SigmaCGG",sigmaT7_cds);
+		String sigmaCGG_sequence = "";
+		Sequence sigmaCGG_seq= doc.createSequence("SigmaCGG_protein_sequence", version, sigmaCGG_sequence, Sequence.IUPAC_DNA);
+		sigmaCGG_cds.addSequence(sigmaCGG_seq);
 	}
 	
 	private static ComponentDefinition createCDS(SBOLDocument doc, String display) throws SBOLValidationException
@@ -177,6 +189,9 @@ public class Cello2SBOL {
 	private static ComponentDefinition createComponentDefinition(SBOLDocument doc, String display, URI type, URI role) throws SBOLValidationException
 	{
 		ComponentDefinition cds = doc.createComponentDefinition(display, version, type);
+		cds.setName(display);
+		cds.addWasGeneratedBy(activityURI);
+		cds.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 		
 		if(role == null)
 		{
@@ -219,14 +234,12 @@ public class Cello2SBOL {
 			String dnasequence = (String)part.get("dnasequence");
 			Sequence sequence = document.createSequence(name + "_sequence", version, dnasequence, Sequence.IUPAC_DNA);
 			sequence.setName(name+"_sequence");
-			sequence.addWasDerivedFrom(derivedFrom);
 			sequence.addWasGeneratedBy(activityURI);
 			sequence.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 
 			ComponentDefinition componentDefinition = 
 					document.createComponentDefinition(name, version, ComponentDefinition.DNA);
 			componentDefinition.setName(name);
-			componentDefinition.addWasDerivedFrom(derivedFrom);
 			componentDefinition.addWasGeneratedBy(activityURI);
 			componentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 			String partType = (String)part.get("type");
@@ -244,14 +257,12 @@ public class Cello2SBOL {
 		ComponentDefinition proteinComponentDefinition =
 				document.createComponentDefinition(cdsId+"_protein", version, ComponentDefinition.PROTEIN);
 		proteinComponentDefinition.setName(cdsId+"_protein");
-		proteinComponentDefinition.addWasDerivedFrom(derivedFrom);
 		proteinComponentDefinition.addWasGeneratedBy(activityURI);
 		proteinComponentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 
 		ModuleDefinition moduleDefinition = 
 				document.createModuleDefinition(cdsId+"_protein_production", version);
 		moduleDefinition.setName(cdsId+"_protein_production");
-		moduleDefinition.addWasDerivedFrom(derivedFrom);
 		moduleDefinition.addWasGeneratedBy(activityURI);
 		moduleDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 		moduleDefinition.createFunctionalComponent(cdsId, AccessType.PUBLIC, 
@@ -266,7 +277,6 @@ public class Cello2SBOL {
 		moduleDefinition = 
 				document.createModuleDefinition(cdsId+"_protein_degradation", version);
 		moduleDefinition.setName(cdsId+"_protein_degradation");
-		moduleDefinition.addWasDerivedFrom(derivedFrom);
 		moduleDefinition.addWasGeneratedBy(activityURI);
 		moduleDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 		moduleDefinition.createFunctionalComponent(cdsId+"_protein", AccessType.PUBLIC, 
@@ -280,7 +290,6 @@ public class Cello2SBOL {
 	{
 		ModuleDefinition moduleDefinition = 
 				document.createModuleDefinition(partId+"_"+promoter+"_repression", version);
-		moduleDefinition.addWasDerivedFrom(derivedFrom);
 		moduleDefinition.addWasGeneratedBy(activityURI);
 		moduleDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 		moduleDefinition.createFunctionalComponent(partId+"_protein", AccessType.PUBLIC, 
@@ -298,15 +307,14 @@ public class Cello2SBOL {
 	private static void createActivation(SBOLDocument document,String activator,String promoter) throws SBOLValidationException 
 	{
 		ModuleDefinition moduleDefinition = 
-				document.createModuleDefinition(activator+"_"+promoter+"_repression", version);
-		moduleDefinition.addWasDerivedFrom(derivedFrom);
+				document.createModuleDefinition(activator+"_"+promoter+"_activation", version);
 		moduleDefinition.addWasGeneratedBy(activityURI);
 		moduleDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 		moduleDefinition.createFunctionalComponent(activator, AccessType.PUBLIC, 
 				activator, version, DirectionType.NONE);
 		moduleDefinition.createFunctionalComponent(promoter, AccessType.PUBLIC, 
 				promoter, version, DirectionType.NONE);
-		Interaction interaction = moduleDefinition.createInteraction(activator+"_"+promoter+"_repression", 
+		Interaction interaction = moduleDefinition.createInteraction(activator+"_"+promoter+"_activation", 
 				SystemsBiologyOntology.STIMULATION);
 		interaction.createParticipation(activator+"_protein_participation", activator, 
 				SystemsBiologyOntology.STIMULATOR);
@@ -319,10 +327,12 @@ public class Cello2SBOL {
 		String complex = reactant1 + "_" + reactant2;
 		ComponentDefinition complexComponentDefinition = 
 				document.createComponentDefinition(complex, version, ComponentDefinition.COMPLEX);
+		complexComponentDefinition.setName(complex);
+		complexComponentDefinition.addWasGeneratedBy(activityURI);
+		complexComponentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 
 		ModuleDefinition moduleDefinition = 
 				document.createModuleDefinition(complex+"_complex_formation", version);
-		moduleDefinition.addWasDerivedFrom(derivedFrom);
 		moduleDefinition.addWasGeneratedBy(activityURI);
 		moduleDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 		moduleDefinition.createFunctionalComponent(reactant1, AccessType.PUBLIC, 
@@ -340,7 +350,6 @@ public class Cello2SBOL {
 		moduleDefinition = 
 				document.createModuleDefinition(complex+"_degradation", version);
 		moduleDefinition.setName(complex+"_degradation");
-		moduleDefinition.addWasDerivedFrom(derivedFrom);
 		moduleDefinition.addWasGeneratedBy(activityURI);
 		moduleDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 		moduleDefinition.createFunctionalComponent(complex, AccessType.PUBLIC, 
@@ -358,7 +367,6 @@ public class Cello2SBOL {
 					document.createComponentDefinition(gate_name, version, ComponentDefinition.DNA);
 			componentDefinition.setName(gate_name);
 			componentDefinition.addRole(SequenceOntology.ENGINEERED_REGION);
-			componentDefinition.addWasDerivedFrom(derivedFrom);
 			componentDefinition.addWasGeneratedBy(activityURI);
 			componentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 	        componentDefinition.createAnnotation(new QName(celloNS,"family","cello"), 
@@ -394,7 +402,7 @@ public class Cello2SBOL {
 				int start = 1;
 				//int constraintCount = 0;
 				//Component previousComponent = null;
-		        Component currentComponent = null;
+//		        Component currentComponent = null;
 		        
 				JSONObject expression_cassette = (JSONObject) obj;
 				JSONArray cassette_parts = (JSONArray)expression_cassette.get("cassette_parts");
@@ -403,7 +411,8 @@ public class Cello2SBOL {
 					ComponentDefinition partComponentDefinition = document.getComponentDefinition(partId, version);
 					String cass_seq = document.getSequence(partId+"_sequence",version).getElements();
 					seq += cass_seq;
-					currentComponent = componentDefinition.createComponent(partId, AccessType.PUBLIC, partId, version);
+					//currentComponent = 
+					componentDefinition.createComponent(partId, AccessType.PUBLIC, partId, version);
 //					if (previousComponent != null) {
 //						componentDefinition.createSequenceConstraint("constraint"+constraintCount, RestrictionType.PRECEDES,
 //								previousComponent.getIdentity(), currentComponent.getIdentity());
@@ -428,7 +437,6 @@ public class Cello2SBOL {
 			
 			Sequence sequence = document.createSequence(gate_name+"_sequence", version, seq, Sequence.IUPAC_DNA);
 			sequence.setName(gate_name+"_sequence");
-			sequence.addWasDerivedFrom(derivedFrom);
 			sequence.addWasGeneratedBy(activityURI);
 			sequence.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 			componentDefinition.addSequence(sequence);
@@ -463,11 +471,11 @@ public class Cello2SBOL {
 		document.setCreateDefaults(true);
 		
 		// Create an Activity
-		Activity genericTopLevel = document.createActivity("cello2sbol", version);
-		genericTopLevel.setName("Cello UCF to SBOL conversion");
-		genericTopLevel.setDescription("Conversion of the Cello UCF parts and metadata to SBOL2");
-		genericTopLevel.createAnnotation(new QName(dcNS,"creator","dc"), "Prashant Vaidyanathan");
-		genericTopLevel.createAnnotation(new QName(dcNS,"creator","dc"), "Chris J. Myers");
+		Activity activity = document.createActivity("cello2sbol", version);
+		activity.setName("Cello UCF to SBOL conversion");
+		activity.setDescription("Conversion of the Cello UCF parts and metadata to SBOL2");
+		activity.createAnnotation(new QName(dcNS,"creator","dc"), "Prashant Vaidyanathan");
+		activity.createAnnotation(new QName(dcNS,"creator","dc"), "Chris J. Myers");
 		TimeZone tz = TimeZone.getTimeZone("UTC");
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		df.setTimeZone(tz);
@@ -476,8 +484,8 @@ public class Cello2SBOL {
 		//DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
 		//DateTime endedAtTime = fmt.parseDateTime(createdDate);
 		//System.out.println(endedAtTime);
-		genericTopLevel.createAnnotation(new QName(provNS,"endedAtTime","prov"), createdDate);
-		activityURI = genericTopLevel.getIdentity();
+		activity.createAnnotation(new QName(provNS,"endedAtTime","prov"), createdDate);
+		activityURI = activity.getIdentity();
 		//document.write(System.out);
 		
 		// Parse JSON
@@ -530,7 +538,13 @@ public class Cello2SBOL {
         	// Upload to SynBioHub
         	SynBioHubFrontend sbh = new SynBioHubFrontend(databasePrefix);
         	sbh.login(args[0], args[1]);
-        	sbh.createCollection("CelloParts", "1", "Cello Parts", "These are the Cello parts", "27034378", true, document);
+        	sbh.createCollection("Cello_Parts", "1", "Cello Parts", "These are the Cello parts", "27034378", true);
+        	sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/Cello_Parts/Cello_Parts_collection/1"), args[5]);
+        	SBOLDocument doc = sbh.getSBOL(URI.create(databasePrefix + "/user/" + args[2] + "/Cello_Parts/Cello_Parts_collection/1"));
+        	for (Attachment attachment : doc.getAttachments()) {
+        		activity.createUsage("UCF_file", attachment.getIdentity());
+        	}
+        	sbh.addToCollection(URI.create(databasePrefix + "/user/" + args[2] + "/Cello_Parts/Cello_Parts_collection/1"), false, document);
         	JSONArray motif_library = new JSONArray();
     		for (Object o : a)
     		{
@@ -546,7 +560,7 @@ public class Cello2SBOL {
     				stream.write(ucf.toJSONString().getBytes());
     				stream.close();
     				buffer.close();
-    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/CelloParts/"+gateName+"/1"), 
+    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/Cello_Parts/"+gateName+"/1"), 
     						args[3] + gateName+"_gate_toxicity.json");
     			} else if (collection.equals("gate_cytometry")) {
     				String gateName = (String)ucf.get("gate_name");
@@ -556,7 +570,7 @@ public class Cello2SBOL {
     				stream.write(ucf.toJSONString().getBytes());
     				stream.close();
     				buffer.close();
-    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/CelloParts/"+gateName+"/1"), 
+    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/Cello_Parts/"+gateName+"/1"), 
     						args[3] + gateName+"_gate_cytometry.json");
     			} else if (collection.equals("header")) {
     				File file = new File(args[3] + "header.json");
@@ -565,7 +579,7 @@ public class Cello2SBOL {
     				stream.write(ucf.toJSONString().getBytes());
     				stream.close();
     				buffer.close();
-    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/CelloParts/CelloParts_collection/1"), 
+    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/Cello_Parts/Cello_Parts_collection/1"), 
     						args[3] + "header.json");
     			} else if (collection.equals("measurement_std")) {
     				File file = new File(args[3] + "measurement_std.json");
@@ -574,7 +588,7 @@ public class Cello2SBOL {
     				stream.write(ucf.toJSONString().getBytes());
     				stream.close();
     				buffer.close();
-    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/CelloParts/CelloParts_collection/1"), 
+    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/Cello_Parts/Cello_Parts_collection/1"), 
     						args[3] + "measurement_std.json");
     			} else if (collection.equals("logic_constraints")) {
     				File file = new File(args[3] + "logic_constraints.json");
@@ -583,7 +597,7 @@ public class Cello2SBOL {
     				stream.write(ucf.toJSONString().getBytes());
     				stream.close();
     				buffer.close();
-    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/CelloParts/CelloParts_collection/1"), 
+    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/Cello_Parts/Cello_Parts_collection/1"), 
     						args[3] + "logic_constraints.json");
     			} else if (collection.equals("eugene_rules")) {
     				File file = new File(args[3] + "eugene_rules.json");
@@ -592,7 +606,7 @@ public class Cello2SBOL {
     				stream.write(ucf.toJSONString().getBytes());
     				stream.close();
     				buffer.close();
-    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/CelloParts/CelloParts_collection/1"), 
+    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/Cello_Parts/Cello_Parts_collection/1"), 
     						args[3] + "eugene_rules.json");
     			} else if (collection.equals("genetic_locations")) {
     				File file = new File(args[3] + "genetic_locations.json");
@@ -601,7 +615,7 @@ public class Cello2SBOL {
     				stream.write(ucf.toJSONString().getBytes());
     				stream.close();
     				buffer.close();
-    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/CelloParts/CelloParts_collection/1"), 
+    				sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/Cello_Parts/Cello_Parts_collection/1"), 
     						args[3] + "genetic_locations.json");
     			} else if (collection.equals("motif_library")) {
     				motif_library.add(ucf);
@@ -619,7 +633,7 @@ public class Cello2SBOL {
 			stream.write(motif_library.toJSONString().getBytes());
 			stream.close();
 			buffer.close();
-			sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/CelloParts/CelloParts_collection/1"), 
+			sbh.attachFile(URI.create(databasePrefix + "/user/" + args[2] + "/Cello_Parts/Cello_Parts_collection/1"), 
 					args[3] + "motif_library.json");
         	System.out.println("Conversion, validation, and upload successful");
         }
