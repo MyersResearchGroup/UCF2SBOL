@@ -1,4 +1,4 @@
-package SBOLExamples.UCF2SBOL;
+package UCF2SBOL.UCF2SBOL;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -210,7 +210,7 @@ public class Cello2SBOL {
 		createProtein(doc,"LacI",lacI_cds);
 		doc.createComponentDefinition("IPTG", version, ComponentDefinition.SMALL_MOLECULE);
 		createComplex(doc,"IPTG","LacI_protein");
-		createInhibition(doc,"LacI_protein","pTac",0.0034,2.8);
+		createInhibition(doc,"LacI_protein","pTac",0.0034,2.8,null,null);
 		String pTac_prom_sequences = "AACGATCGTTGGCTGTGTTGACAATTAATCATCGGCTCGTATAATGTGTGGAATTGTGAGCGCTCACAATT";
 		Sequence pTac_prom_seq= doc.createSequence("pTac_sequence", version, pTac_prom_sequences, Sequence.IUPAC_DNA);
 		pTac_prom.addSequence(pTac_prom_seq);
@@ -225,7 +225,7 @@ public class Cello2SBOL {
 		createProtein(doc,"TetR",tetR_cds);
 		doc.createComponentDefinition("aTc", version, ComponentDefinition.SMALL_MOLECULE);
 		createComplex(doc,"aTc","TetR_protein");
-		createInhibition(doc,"TetR_protein","pTet",0.0013,4.4);
+		createInhibition(doc,"TetR_protein","pTet",0.0013,4.4,null,null);
 		String pTet_prom_sequences = "TACTCCACCGTTGGCTTTTTTCCCTATCAGTGATAGAGATTGACATCCCTATCAGTGATAGAGATAATGAGCAC";
 		Sequence pTet_prom_seq= doc.createSequence("pTet_sequence", version, pTet_prom_sequences, Sequence.IUPAC_DNA);
 		pTet_prom.addSequence(pTet_prom_seq);
@@ -240,7 +240,7 @@ public class Cello2SBOL {
 		createProtein(doc,"AraC",araC_cds);
 		doc.createComponentDefinition("Ara", version, ComponentDefinition.SMALL_MOLECULE);
 		createComplex(doc,"Ara","AraC_protein");
-		createActivation(doc,"Ara_AraC_protein","pBAD",0.0082,2.5);
+		createActivation(doc,"Ara_AraC_protein","pBAD",0.0082,2.5,null,null);
 		String pBAD_prom_sequences = "ACTTTTCATACTCCCGCCATTCAGAGAAGAAACCAATTGTCCATATTGCATCAGACATTGCCGTCACTGCGTCTTTTACTGGCTCTTCTCGCTAACCAAACCGGTAACCCCGCTTATTAAAAGCATTCTGTAACAAAGCGGGACCAAAGCCATGACAAAAACGCGTAACAAAAGTGTCTATAATCACGGCAGAAAAGTCCACATTGATTATTTGCACGGCGTCACACTTTGCTATGCCATAGCATTTTTATCCATAAGATTAGCGGATCCTACCTGACGCTTTTTATCGCAACTCTCTACTGTTTCTCCATACCCGTTTTTTTGGGCTAGC";
 		Sequence pBAD_prom_seq= doc.createSequence("pBAD_sequence", version, pBAD_prom_sequences, Sequence.IUPAC_DNA);
 		pBAD_prom.addSequence(pBAD_prom_seq);
@@ -265,7 +265,7 @@ public class Cello2SBOL {
 		createProtein(doc,"LuxR",luxR_cds);
 		doc.createComponentDefinition("HSL", version, ComponentDefinition.SMALL_MOLECULE);
 		createComplex(doc,"HSL","LuxR_protein");
-		createActivation(doc,"HSL_LuxR_protein","pLuxStar",0.025,0.31);
+		createActivation(doc,"HSL_LuxR_protein","pLuxStar",0.025,0.31,null,null);
 		String pLuxStar_prom_sequences = "ATAGCTTCTTACCGGACCTGTAGGATCGTACAGGTTTACGCAAGAAAATGGTTTGTTACTTTCGAATAAA";
 		Sequence pLuxStar_prom_seq= doc.createSequence("pLuxStar_sequence", version, pLuxStar_prom_sequences, Sequence.IUPAC_DNA);
 		pLuxStar_prom.addSequence(pLuxStar_prom_seq);
@@ -347,7 +347,7 @@ public class Cello2SBOL {
 		
 	private static URI getRole(String type) {
 		if (type.equals("ribozyme")) {
-	        return URI.create(so + "SO:0000374");
+	        return URI.create(so + "SO:0001977");
 	    }
 	    else if (type.equals("scar")) {
 	        return URI.create(so + "SO:0001953");
@@ -484,8 +484,8 @@ public class Cello2SBOL {
 		interaction.createParticipation(rnaId+"_rna", rnaId+"_rna",  SystemsBiologyOntology.REACTANT);
 	}
 	
-	private static void createInhibition(SBOLDocument document,String inhibitor,String inhibited,Double ymin,Double ymax) 
-			throws SBOLValidationException 
+	private static void createInhibition(SBOLDocument document,String inhibitor,String inhibited,
+			Double ymin,Double ymax,Double alpha,Double beta) throws SBOLValidationException 
 	{
 		ModuleDefinition moduleDefinition = 
 				document.createModuleDefinition(inhibitor+"_"+inhibited+"_repression", version);
@@ -507,10 +507,16 @@ public class Cello2SBOL {
 		if (ymax != null) {
 			interaction.createAnnotation(new QName(celloNS,"ymax","cello"),ymax); 
 		}
+		if (alpha != null) {
+			interaction.createAnnotation(new QName(celloNS,"alpha","cello"),alpha); 
+		}
+		if (beta != null) {
+			interaction.createAnnotation(new QName(celloNS,"beta","cello"),beta); 
+		}
 	}
 	
-	private static void createActivation(SBOLDocument document,String activator,String promoter,Double ymin,Double ymax) 
-			throws SBOLValidationException 
+	private static void createActivation(SBOLDocument document,String activator,String promoter,
+			Double ymin,Double ymax,Double alpha,Double beta) throws SBOLValidationException 
 	{
 		ModuleDefinition moduleDefinition = 
 				document.createModuleDefinition(activator+"_"+promoter+"_activation", version);
@@ -531,6 +537,12 @@ public class Cello2SBOL {
 		}
 		if (ymax != null) {
 			interaction.createAnnotation(new QName(celloNS,"ymax","cello"),ymax); 
+		}
+		if (alpha != null) {
+			interaction.createAnnotation(new QName(celloNS,"alpha","cello"),alpha); 
+		}
+		if (beta != null) {
+			interaction.createAnnotation(new QName(celloNS,"beta","cello"),beta); 
 		}
 	}
 	
@@ -593,6 +605,8 @@ public class Cello2SBOL {
 	        		(String)gatesMap.get(gate_name).get("color_hexcode"));
 	        componentDefinition.createAnnotation(new QName(celloNS,"response_function","cello"), 
 	        		(String)responseMap.get(gate_name).get("equation"));
+	        componentDefinition.createAnnotation(new QName(celloNS,"tandem_efficiency_factor","cello"), 
+	        		(String)responseMap.get(gate_name).get("tandem_efficiency_factor"));
 	        JSONArray parameters = (JSONArray)responseMap.get(gate_name).get("parameters");
 	        for (Object obj : parameters) {
 	        	String name = (String)((JSONObject)obj).get("name");
@@ -641,14 +655,14 @@ public class Cello2SBOL {
 					if (partComponentDefinition.getRoles().contains(SequenceOntology.CDS)) {
 						String promoter = (String)gate.get("promoter");
 						if (document.getModuleDefinition(partId+"_protein_"+promoter+"_repression", version)==null) {
-							createInhibition(document,partId+"_protein",promoter,null,null);
+							createInhibition(document,partId+"_protein",promoter,null,null,null,null);
 						}
 					}
 					if (partComponentDefinition.getRoles().contains(URI.create(so + "SO:0001264"))) {
 						String promoter = (String)gate.get("promoter");
 						createComplex(document,partId+"_rna","dCAS9_Mxi1_protein");
 						if (document.getModuleDefinition(partId+"_rna_dCAS9_Mxi1_protein_"+promoter+"_repression", version)==null) {
-							createInhibition(document,partId+"_rna_dCAS9_Mxi1_protein",promoter,null,null);
+							createInhibition(document,partId+"_rna_dCAS9_Mxi1_protein",promoter,null,null,null,null);
 						}
 					}
 				}
@@ -703,13 +717,29 @@ public class Cello2SBOL {
 					String input_molecule = (String)sensor.get("input_molecule");
 					Double signal_low = (Double)sensor.get("signal_low");
 					Double signal_high = (Double)sensor.get("signal_high");
+					Double alpha = null;
+					Double beta = null;
+			        JSONArray parameters = (JSONArray)sensor.get("parameters");
+			        for (Object obj : parameters) {
+			        	String name = (String)((JSONObject)obj).get("name");
+			        	if (name.equals("signal_low")) {
+			        		signal_low = (Double)((JSONObject)obj).get("value");
+			        	} else if (name.equals("signal_high")) {
+			        		signal_high = (Double)((JSONObject)obj).get("value");
+			        	} else if (name.equals("alpha")) {
+			        		alpha = (Double)((JSONObject)obj).get("value");
+			        	} else if (name.equals("beta")) {
+			        		beta = (Double)((JSONObject)obj).get("value");
+			        	} 
+			        }
+
 
 					document.createComponentDefinition(input_molecule, version, ComponentDefinition.SMALL_MOLECULE);
 					createComplex(document,input_molecule,partId+"_protein");
 					if (((String)sensor.get("type")).equals("complex_stimulator")) {
-						createActivation(document,input_molecule+"_"+partId+"_protein",promoter,signal_low,signal_high);
+						createActivation(document,input_molecule+"_"+partId+"_protein",promoter,signal_low,signal_high,alpha,beta);
 					} else if (((String)sensor.get("type")).equals("sequester_inhibitor")) {
-						createInhibition(document,partId+"_protein",promoter,signal_low,signal_high);
+						createInhibition(document,partId+"_protein",promoter,signal_low,signal_high,alpha,beta);
 					}
 				}
 				
@@ -1024,6 +1054,15 @@ public class Cello2SBOL {
     				buffer.close();
     				sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion), 
     						tmpDir + "PartitionProfile.json");
+    			} else if (collection.equals("containers")) {
+    				File file = new File(args[3] + "containers.json");
+    				FileOutputStream stream = new FileOutputStream(file);
+    				BufferedOutputStream buffer = new BufferedOutputStream(stream);
+    				stream.write(ucf.toJSONString().getBytes());
+    				stream.close();
+    				buffer.close();
+    				sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion), 
+    						tmpDir + "containers.json");
     			} else if (collection.equals("motif_library")) {
     				motif_library.add(ucf);
     			} else if (collection.equals("gates")) {
