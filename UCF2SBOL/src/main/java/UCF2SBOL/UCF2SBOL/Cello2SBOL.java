@@ -12,7 +12,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TimeZone;
+
 import javax.xml.namespace.QName;
+
 import org.joda.time.DateTime;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -291,9 +293,22 @@ public class Cello2SBOL {
 	}
 
 	private static void convertGatePartsToSBOL(SBOLDocument document,HashSet<JSONObject> gate_partsArr,
-			HashMap<String,JSONObject> gatesMap,HashMap<String,JSONObject> responseMap) throws SBOLValidationException {
+			HashMap<String,JSONObject> gatesMap,HashMap<String,JSONObject> responseMap, HashMap<String,JSONObject> functionMap) throws SBOLValidationException {
 		for (JSONObject gate : gate_partsArr) {
+			boolean v2 = (functionMap != null);
 			String gate_name = (String)gate.get("gate_name");
+			String respfxn = null;
+											
+			
+			if(v2) {
+				gate_name = (String)gate.get("name");
+				gate_name = gate_name.substring(0, gate_name.length()-10);
+				respfxn = (String) ((functionMap.get((String)(((JSONObject)responseMap.get(gate_name).get("functions")).get("response_function")))).get("equation"));
+			}
+			else {
+				respfxn = (String)responseMap.get(gate_name).get("equation");
+			}
+
 			ComponentDefinition componentDefinition = 
 					document.createComponentDefinition(gate_name, version, ComponentDefinition.DNA_REGION);
 			componentDefinition.setName(gate_name);
@@ -307,11 +322,11 @@ public class Cello2SBOL {
 	        componentDefinition.createAnnotation(new QName(celloNS,"gate_type","cello"), 
 	        		(String)gatesMap.get(gate_name).get("gate_type"));
 	        componentDefinition.createAnnotation(new QName(celloNS,"group_name","cello"), 
-	        		(String)gatesMap.get(gate_name).get("group_name"));
+	        		(String)gatesMap.get(gate_name).get(v2 ? "group" : "group_name"));
 	        componentDefinition.createAnnotation(new QName(celloNS,"color_hexcode","cello"), 
-	        		(String)gatesMap.get(gate_name).get("color_hexcode"));
+	        		(String)gatesMap.get(gate_name).get(v2 ? "color" : "color_hexcode"));
 	        componentDefinition.createAnnotation(new QName(celloNS,"response_function","cello"), 
-	        		(String)responseMap.get(gate_name).get("equation"));
+	        		respfxn);
 	        if (responseMap.get(gate_name).get("tandem_efficiency_factor") != null) {
 	        	componentDefinition.createAnnotation(new QName(celloNS,"tandem_efficiency_factor","cello"), 
 		        		(String)responseMap.get(gate_name).get("tandem_efficiency_factor"));
@@ -323,16 +338,15 @@ public class Cello2SBOL {
 	        	componentDefinition.createAnnotation(new QName(celloNS,name,"cello"), 
 	        			(Double)((JSONObject)obj).get("value"));
 	        }
-	        JSONArray variables = (JSONArray)responseMap.get(gate_name).get("variables");
-	        for (Object obj : variables) {
-	        	String name = (String)((JSONObject)obj).get("name");
-	        	componentDefinition.createAnnotation(new QName(celloNS,name+"_off_threshold","cello"), 
-	        			(Double)((JSONObject)obj).get("off_threshold"));
-	        	componentDefinition.createAnnotation(new QName(celloNS,name+"_on_threshold","cello"), 
-	        			(Double)((JSONObject)obj).get("on_threshold"));
-	        }
-			
-			JSONArray expression_cassettes = (JSONArray) gate.get("expression_cassettes");
+//	        JSONArray variables = (JSONArray)responseMap.get(gate_name).get("variables");
+//	        for (Object obj : variables) {
+//	        	String name = (String)((JSONObject)obj).get("name");
+//	        	componentDefinition.createAnnotation(new QName(celloNS,name+"_off_threshold","cello"), 
+//	        			(Double)((JSONObject)obj).get("off_threshold"));
+//	        	componentDefinition.createAnnotation(new QName(celloNS,name+"_on_threshold","cello"), 
+//	        			(Double)((JSONObject)obj).get("on_threshold"));
+//	        }
+	        JSONArray expression_cassettes = v2 ? (JSONArray) gate.get("devices") : (JSONArray) gate.get("expression_cassettes");
 			String seq = "";
 			for (Object obj : expression_cassettes) {
 				int annotationCount = 0;
@@ -342,8 +356,13 @@ public class Cello2SBOL {
 //		        Component currentComponent = null;
 		        
 				JSONObject expression_cassette = (JSONObject) obj;
-				JSONArray cassette_parts = (JSONArray)expression_cassette.get("cassette_parts");
+				JSONArray cassette_parts = v2 ? (JSONArray)expression_cassette.get("components") : (JSONArray)expression_cassette.get("cassette_parts");
+				
+				if (((String)cassette_parts.get(0)).equals("#in1") && ((String)cassette_parts.get(1)).equals("#in2")) {
+					continue;
+				}
 				for (Object obj2 : cassette_parts) {
+					
 					String partId = (String)obj2;
 					ComponentDefinition partComponentDefinition = document.getComponentDefinition(partId, version);
 					String cass_seq = document.getSequence(partId+"_sequence",version).getElements();
@@ -363,13 +382,13 @@ public class Cello2SBOL {
 					annotationCount++;
 					
 					if (partComponentDefinition.getRoles().contains(SequenceOntology.CDS)) {
-						String promoter = (String)gate.get("promoter");
+						String promoter = v2 ? (String)((JSONArray)gate.get("outputs")).get(0) : (String)gate.get("promoter");
 						if (document.getModuleDefinition(partId+"_protein_"+promoter+"_repression", version)==null) {
 							createInhibition(document,partId+"_protein",promoter,null,null,null,null);
 						}
 					}
 					if (partComponentDefinition.getRoles().contains(URI.create(so + "SO:0001264"))) {
-						String promoter = (String)gate.get("promoter");
+						String promoter = v2 ? (String)((JSONArray)gate.get("outputs")).get(0) : (String)gate.get("promoter");
 						createComplex(document,partId+"_rna","dCAS9_Mxi1_protein");
 						if (document.getModuleDefinition(partId+"_rna_dCAS9_Mxi1_protein_"+promoter+"_repression", version)==null) {
 							createInhibition(document,partId+"_rna_dCAS9_Mxi1_protein",promoter,null,null,null,null);
@@ -512,18 +531,44 @@ public class Cello2SBOL {
 		}
 	}
 	
+	public static boolean isV2(JSONArray a) {
+		boolean models = false;
+		boolean structures = false;
+		for (Object o : a)
+		{
+			JSONObject ucf = (JSONObject) o;
+			
+			String collection = (String) ucf.get("collection");
+			if(collection.equals("models")) {
+				models = true;
+			}
+			else if(collection.equals("structures")) {
+				structures = true;
+			}
+			
+			if(models && structures) {
+				return true;
+			}
+			
+
+		}
+		return false;
+	}
+	
 	// args[0] - login email
 	// args[1] - password
 	// args[2] - login user
 	// args[3] - temporary directory
 	// args[4] - databasePrefix
 	// args[5] - path to UCF file
-	// args[6] - databaseURL
-	// args[7] - collection id
-	// args[8] - collection version
-	// args[9] - collection name
-	// args[10] - collection description
-	// args[11] - collection pubMedId
+	// args[6] - path to input file
+	// args[7] - path to output file
+	// args[8] - databaseURL
+	// args[9] - collection id
+	// args[10] - collection version
+	// args[11] - collection name
+	// args[12] - collection description
+	// args[13] - collection pubMedId
 	public static void main( String[] args ) throws SBOLValidationException, SBOLConversionException, SynBioHubException, FileNotFoundException, IOException, ParseException, URISyntaxException
     {
 		if (args.length < 6) {
@@ -549,6 +594,8 @@ public class Cello2SBOL {
 		String tmpDir = args[3];
 		String databasePrefix = args[4];
 		String pathToUCFFile = args[5];
+		String pathToInputFile = null;
+		String pathToOutputFile = null;				
 		String databaseURL = databasePrefix;
 		String collectionId = "Cello_Parts";
 		String collectionVersion = "1";
@@ -556,22 +603,28 @@ public class Cello2SBOL {
 		String collectionDescription = "These are the Cello parts";
 		String collectionPubMedId = "27034378";
 		if (args.length > 6) {
-			databaseURL = args[6];
+			pathToInputFile = args[6];
 		}
 		if (args.length > 7) {
-			collectionId = args[7];
+			pathToOutputFile = args[7];
 		}
 		if (args.length > 8) {
-			collectionVersion = args[8];
+			databaseURL = args[8];
 		}
 		if (args.length > 9) {
-			collectionName = args[9];
+			collectionId = args[9];
 		}
 		if (args.length > 10) {
-			collectionDescription = args[10];
+			collectionVersion = args[10];
 		}
 		if (args.length > 11) {
-			collectionPubMedId = args[11];
+			collectionName = args[11];
+		}
+		if (args.length > 12) {
+			collectionDescription = args[12];
+		}
+		if (args.length > 13) {
+			collectionPubMedId = args[13];
 		}
 		
 		SBOLDocument document = new SBOLDocument(); 
@@ -613,35 +666,91 @@ public class Cello2SBOL {
 		HashSet<JSONObject> output_reportersArr = new HashSet<JSONObject>();
 		HashMap<String,JSONObject> gatesMap = new HashMap<String,JSONObject>();
 		HashMap<String,JSONObject> responseMap = new HashMap<String,JSONObject>();
+		HashMap<String,JSONObject> functionMap = new HashMap<String,JSONObject>();
 
 		JSONParser parser = new JSONParser();
 		JSONArray a = (JSONArray) parser.parse(new FileReader(pathToUCFFile));
+		JSONArray in = null;
+		JSONArray out = null;
+		boolean v2 = isV2(a);
+		if (v2) {
+			in = (JSONArray) parser.parse(new FileReader(pathToInputFile));
+			out = (JSONArray) parser.parse(new FileReader(pathToOutputFile));
+			for (Object o : in) {
+				JSONObject ucf = (JSONObject) o;
+				String collection = (String) ucf.get("collection");
+				if (collection.equals("parts")) {
+					partsMap.put((String)ucf.get("name"),ucf);
+				}
+			}
+			for (Object o : out)
+			{
+				JSONObject ucf = (JSONObject) o;
 
-		for (Object o : a)
-		{
-			JSONObject ucf = (JSONObject) o;
+				String collection = (String) ucf.get("collection");
+				if (collection.equals("functions")) {
+					functionMap.put((String)ucf.get("name"),ucf);
+				}
+			}
 
-			String collection = (String) ucf.get("collection");
+			for (Object o : a)
+			{
+				JSONObject ucf = (JSONObject) o;
 
-			if (collection.equals("parts")) {
-				partsMap.put((String)ucf.get("name"),ucf);
+				String collection = (String) ucf.get("collection");
+				if (collection.equals("functions")) {
+					functionMap.put((String)ucf.get("name"),ucf);
+				}
 			}
-			else if (collection.equals("gate_parts")) {
-				gate_partsArr.add(ucf);
-			}
-			else if (collection.equals("input_sensors")) {
-				input_sensorsArr.add(ucf);
-			}
-			else if (collection.equals("output_reporters")) {
-				output_reportersArr.add(ucf);
-			}
-			else if (collection.equals("gates")) {
-				gatesMap.put((String)ucf.get("gate_name"),ucf);
-			}
-			else if (collection.equals("response_functions")) {
-				responseMap.put((String)ucf.get("gate_name"),ucf);
+			for (Object o : a)
+			{
+				JSONObject ucf = (JSONObject) o;
+
+				String collection = (String) ucf.get("collection");
+
+				if (collection.equals("parts")) {
+					partsMap.put((String)ucf.get("name"),ucf);
+				}
+				else if (collection.equals("structures")) {
+					gate_partsArr.add(ucf);
+				}
+				else if (collection.equals("gates")) {
+					gatesMap.put((String)ucf.get("name"),ucf);
+				}
+				else if (collection.equals("models")) {
+					String name = (String)ucf.get("name");
+					responseMap.put(name.substring(0, name.length()-6),ucf);
+				}
 			}
 		}
+		else {
+			for (Object o : a)
+			{
+				JSONObject ucf = (JSONObject) o;
+
+				String collection = (String) ucf.get("collection");
+
+				if (collection.equals("parts")) {
+					partsMap.put((String)ucf.get("name"),ucf);
+				}
+				else if (collection.equals("gate_parts")) {
+					gate_partsArr.add(ucf);
+				}
+				else if (collection.equals("input_sensors")) {
+					input_sensorsArr.add(ucf);
+				}
+				else if (collection.equals("output_reporters")) {
+					output_reportersArr.add(ucf);
+				}
+				else if (collection.equals("gates")) {
+					gatesMap.put((String)ucf.get("gate_name"),ucf);
+				}
+				else if (collection.equals("response_functions")) {
+					responseMap.put((String)ucf.get("gate_name"),ucf);
+				}
+			}
+		}
+		
         
 //		// dCAS9
 //        ComponentDefinition dCas9 = createCDS(document,"dCAS9_Mxi1");
@@ -655,7 +764,13 @@ public class Cello2SBOL {
 //		yegfp_cds.addSequence(yegfp_seq);
 
 		convertPartsToSBOL(document,partsMap);
-        convertGatePartsToSBOL(document,gate_partsArr,gatesMap,responseMap);
+		if (v2) {
+	        convertGatePartsToSBOL(document,gate_partsArr,gatesMap,responseMap,functionMap);
+		}
+		else {
+	        convertGatePartsToSBOL(document,gate_partsArr,gatesMap,responseMap,null);
+		}
+
         convertInputSensorsToSBOL(document,input_sensorsArr);
         convertOutputReportersToSBOL(document,output_reportersArr);
         
@@ -670,6 +785,8 @@ public class Cello2SBOL {
         
         // Validate
         SBOLValidate.validateSBOL(document,true,true,true);
+//        document.write(collectionId + ".SBOL");
+        int i = 0;
         if (SBOLValidate.getNumErrors()>0) {
         	for (String error : SBOLValidate.getErrors()) {
         		System.out.println(error);
@@ -681,9 +798,25 @@ public class Cello2SBOL {
         	sbh.createCollection(collectionId, collectionVersion, collectionName, collectionDescription,
         			collectionPubMedId, true);
         	sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion), pathToUCFFile);
+        	if (v2) {
+        		sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion), pathToInputFile);
+            	sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion), pathToOutputFile);
+
+        	}
         	SBOLDocument doc = sbh.getSBOL(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion));
         	for (Attachment attachment : doc.getAttachments()) {
-        		activity.createUsage("UCF_file", attachment.getIdentity());
+        		switch(i) {
+        		case 0: activity.createUsage("UCF_file", attachment.getIdentity());
+        		i += 1;
+        		
+        		case 1: activity.createUsage("input_file", attachment.getIdentity());
+        		i += 1;
+        		
+        		case 2: activity.createUsage("output_file", attachment.getIdentity());
+        		i += 1;
+        		}
+        		
+        		
         	}
         	sbh.addToCollection(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion), false, document);
         	JSONArray motif_library = new JSONArray();
@@ -703,6 +836,24 @@ public class Cello2SBOL {
     				buffer.close();
     				sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + gateName + "/" + collectionVersion), 
     						tmpDir + gateName+"_gate_toxicity.json");
+    			} else if (collection.equals("circuit_rules")) {
+    				File file = new File(args[3] + "circuit_rules.json");
+    				FileOutputStream stream = new FileOutputStream(file);
+    				BufferedOutputStream buffer = new BufferedOutputStream(stream);
+    				stream.write(ucf.toJSONString().getBytes());
+    				stream.close();
+    				buffer.close();
+    				sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion), 
+    						tmpDir + "circuit_rules.json");
+    			} else if (collection.equals("device_rules")) {
+    				File file = new File(args[3] + "device_rules.json");
+    				FileOutputStream stream = new FileOutputStream(file);
+    				BufferedOutputStream buffer = new BufferedOutputStream(stream);
+    				stream.write(ucf.toJSONString().getBytes());
+    				stream.close();
+    				buffer.close();
+    				sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion), 
+    						tmpDir + "device_rules.json");
     			} else if (collection.equals("gate_cytometry")) {
     				String gateName = (String)ucf.get("gate_name");
     				File file = new File(args[3] + gateName+"_gate_cytometry.json");
@@ -783,7 +934,10 @@ public class Cello2SBOL {
     			} else if (collection.equals("input_sensors")) {
     			} else if (collection.equals("output_reporters")) {
     			} else if (collection.equals("parts")) {
+    			} else if (collection.equals("functions")) {
     			} else if (collection.equals("response_functions")) {
+    			} else if (collection.equals("models")) {
+    			} else if (collection.equals("structures")) {
     			} else {
         			System.out.println(collection);
     			}
