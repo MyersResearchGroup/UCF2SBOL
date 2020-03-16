@@ -4,8 +4,8 @@ Supports UCF versions 1 and 2
 
 # Command Line Arguments
 
-args[0] - login email
-args[1] - password
+args[0] - login email\n
+args[1] - password\n
 args[2] - login user
 args[3] - temporary directory
 args[4] - databasePrefix
