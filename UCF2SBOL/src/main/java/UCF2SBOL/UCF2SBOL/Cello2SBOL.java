@@ -57,20 +57,17 @@ public class Cello2SBOL {
 	private static URI getRole(String type) {
 		if (type.equals("ribozyme")) {
 	        return URI.create(so + "SO:0001977");
-	    }
-	    else if (type.equals("scar")) {
+	    } else if (type.equals("scar")) {
 	        return URI.create(so + "SO:0001953");
-	    }
-	    else if (type.equals("cds")) {
+	    } else if (type.equals("cds")) {
 	        return URI.create(so + "SO:0000316");
-	    }
-	    else if (type.equals("promoter")) {
+	    } else if (type.equals("promoter")) {
 	        return URI.create(so + "SO:0000167");
-	    }
-	    else if (type.equals("rbs")) {
+	    } else if (type.equals("rbs")) {
 	        return URI.create(so + "SO:0000139");
-	    }
-	    else if (type.equals("terminator")) {
+	    } else if (type.equals("cassette")) {
+	    	return URI.create(so + "SO:0005853");
+	    } else if (type.equals("terminator")) {
 	        return URI.create(so + "SO:0000141");
 	    } else if (type.equals("grna")) {
 	        return URI.create(so + "SO:0001264");
@@ -298,17 +295,17 @@ public class Cello2SBOL {
 			boolean v2 = (functionMap != null);
 			String gate_name = (String)gate.get("gate_name");
 			String respfxn = null;
-											
 			
 			if(v2) {
 				gate_name = (String)gate.get("name");
 				gate_name = gate_name.substring(0, gate_name.length()-10);
 				respfxn = (String) ((functionMap.get((String)(((JSONObject)responseMap.get(gate_name).get("functions")).get("response_function")))).get("equation"));
 			}
+			
 			else {
 				respfxn = (String)responseMap.get(gate_name).get("equation");
 			}
-
+			System.out.println(gate_name);
 			ComponentDefinition componentDefinition = 
 					document.createComponentDefinition(gate_name, version, ComponentDefinition.DNA_REGION);
 			componentDefinition.setName(gate_name);
@@ -358,11 +355,10 @@ public class Cello2SBOL {
 				JSONObject expression_cassette = (JSONObject) obj;
 				JSONArray cassette_parts = v2 ? (JSONArray)expression_cassette.get("components") : (JSONArray)expression_cassette.get("cassette_parts");
 				
-				if (((String)cassette_parts.get(0)).equals("#in1") && ((String)cassette_parts.get(1)).equals("#in2")) {
+				if (((String)cassette_parts.get(0)).startsWith("#in") && ((String)cassette_parts.get(1)).startsWith("#in")) {
 					continue;
 				}
 				for (Object obj2 : cassette_parts) {
-					
 					String partId = (String)obj2;
 					ComponentDefinition partComponentDefinition = document.getComponentDefinition(partId, version);
 					String cass_seq = document.getSequence(partId+"_sequence",version).getElements();
@@ -597,7 +593,7 @@ public class Cello2SBOL {
 		String pathToInputFile = null;
 		String pathToOutputFile = null;				
 		String databaseURL = databasePrefix;
-		String collectionId = "Cello_Parts";
+		String collectionId = "Eco1C2G2T2";
 		String collectionVersion = "1";
 		String collectionName = "Cello Parts";
 		String collectionDescription = "These are the Cello parts";
@@ -681,6 +677,8 @@ public class Cello2SBOL {
 				String collection = (String) ucf.get("collection");
 				if (collection.equals("parts")) {
 					partsMap.put((String)ucf.get("name"),ucf);
+				} else if (collection.equals("functions")) {
+					functionMap.put((String)ucf.get("name"),ucf);
 				}
 			}
 			for (Object o : out)
@@ -690,6 +688,8 @@ public class Cello2SBOL {
 				String collection = (String) ucf.get("collection");
 				if (collection.equals("functions")) {
 					functionMap.put((String)ucf.get("name"),ucf);
+				} else if (collection.equals("parts")) {
+					partsMap.put((String)ucf.get("name"),ucf);
 				}
 			}
 
