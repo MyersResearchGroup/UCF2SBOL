@@ -305,7 +305,6 @@ public class Cello2SBOL {
 			else {
 				respfxn = (String)responseMap.get(gate_name).get("equation");
 			}
-			System.out.println(gate_name);
 			ComponentDefinition componentDefinition = 
 					document.createComponentDefinition(gate_name, version, ComponentDefinition.DNA_REGION);
 			componentDefinition.setName(gate_name);
@@ -593,7 +592,7 @@ public class Cello2SBOL {
 		String pathToInputFile = null;
 		String pathToOutputFile = null;				
 		String databaseURL = databasePrefix;
-		String collectionId = "Eco1C2G2T2";
+		String collectionId = "Cello_Parts";
 		String collectionVersion = "1";
 		String collectionName = "Cello Parts";
 		String collectionDescription = "These are the Cello parts";
