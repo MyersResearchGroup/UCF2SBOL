@@ -1,8 +1,10 @@
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -16,6 +18,7 @@ import java.util.TimeZone;
 import javax.xml.namespace.QName;
 
 import org.joda.time.DateTime;
+import org.joda.time.base.AbstractDateTime;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -93,7 +96,8 @@ public class Cello2SBOL {
 	    }
 	}
 
-	private static void convertPartsToSBOL(SBOLDocument document,HashMap<String,JSONObject> partsMap) throws SBOLValidationException {
+	private static void convertPartsToSBOL(SBOLDocument document,HashMap<String,JSONObject> partsMap) throws SBOLValidationException, IOException {
+
 		for (JSONObject part : partsMap.values()) {
 			String name = (String)part.get("name");
 			String dnasequence = (String)part.get("dnasequence");
@@ -191,7 +195,7 @@ public class Cello2SBOL {
 	}
 	
 	private static void createInhibition(SBOLDocument document,String inhibitor,String inhibited,
-			Double ymin,Double ymax,Double alpha,Double beta) throws SBOLValidationException 
+			Double ymin,Double ymax,Double alpha,Double beta,Double tau_on,Double tau_off) throws SBOLValidationException 
 	{
 		ModuleDefinition moduleDefinition = 
 				document.createModuleDefinition(inhibitor+"_"+inhibited+"_repression", version);
@@ -219,10 +223,16 @@ public class Cello2SBOL {
 		if (beta != null) {
 			interaction.createAnnotation(new QName(celloNS,"beta","cello"),beta); 
 		}
+		if (tau_on != null) {
+			interaction.createAnnotation(new QName(celloNS,"tau_on","cello"),beta); 
+		}
+		if (tau_off != null) {
+			interaction.createAnnotation(new QName(celloNS,"tau_off","cello"),beta); 
+		}
 	}
 	
 	private static void createActivation(SBOLDocument document,String activator,String promoter,
-			Double ymin,Double ymax,Double alpha,Double beta) throws SBOLValidationException 
+			Double ymin,Double ymax,Double alpha,Double beta,Double tau_on,Double tau_off) throws SBOLValidationException 
 	{
 		ModuleDefinition moduleDefinition = 
 				document.createModuleDefinition(activator+"_"+promoter+"_activation", version);
@@ -249,6 +259,12 @@ public class Cello2SBOL {
 		}
 		if (beta != null) {
 			interaction.createAnnotation(new QName(celloNS,"beta","cello"),beta); 
+		}
+		if (tau_on != null) {
+			interaction.createAnnotation(new QName(celloNS,"tau_on","cello"),tau_on); 
+		}
+		if (tau_off != null) {
+			interaction.createAnnotation(new QName(celloNS,"tau_off","cello"),tau_off); 
 		}
 	}
 	
@@ -379,14 +395,14 @@ public class Cello2SBOL {
 					if (partComponentDefinition.getRoles().contains(SequenceOntology.CDS)) {
 						String promoter = v2 ? (String)((JSONArray)gate.get("outputs")).get(0) : (String)gate.get("promoter");
 						if (document.getModuleDefinition(partId+"_protein_"+promoter+"_repression", version)==null) {
-							createInhibition(document,partId+"_protein",promoter,null,null,null,null);
+							createInhibition(document,partId+"_protein",promoter,null,null,null,null,null,null);
 						}
 					}
 					if (partComponentDefinition.getRoles().contains(URI.create(so + "SO:0001264"))) {
 						String promoter = v2 ? (String)((JSONArray)gate.get("outputs")).get(0) : (String)gate.get("promoter");
 						createComplex(document,partId+"_rna","dCAS9_Mxi1_protein");
 						if (document.getModuleDefinition(partId+"_rna_dCAS9_Mxi1_protein_"+promoter+"_repression", version)==null) {
-							createInhibition(document,partId+"_rna_dCAS9_Mxi1_protein",promoter,null,null,null,null);
+							createInhibition(document,partId+"_rna_dCAS9_Mxi1_protein",promoter,null,null,null,null,null,null);
 						}
 					}
 				}
@@ -402,9 +418,16 @@ public class Cello2SBOL {
 		}
 	}
 
-	private static void convertInputSensorsToSBOL(SBOLDocument document,HashSet<JSONObject> input_sensorsArr) throws SBOLValidationException {
+	private static void convertInputSensorsToSBOL(SBOLDocument document,HashSet<JSONObject> input_sensorsArr,HashMap<String,JSONObject> responseMap) throws SBOLValidationException {
 		for (JSONObject sensor : input_sensorsArr) {
 			String sensor_name = (String)sensor.get("name");
+			boolean v2 = (responseMap != null);
+			
+			if(v2) {
+				sensor_name = sensor_name.substring(0, sensor_name.length()-10);
+			}
+			
+			
 			ComponentDefinition componentDefinition = 
 					document.createComponentDefinition(sensor_name, version, ComponentDefinition.DNA_REGION);
 			componentDefinition.setName(sensor_name);
@@ -412,8 +435,17 @@ public class Cello2SBOL {
 			componentDefinition.addWasGeneratedBy(activityURI);
 			componentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 	        componentDefinition.createAnnotation(new QName(celloNS,"gateType","cello"), "input_sensor");
-					        
-			JSONArray parts = (JSONArray)sensor.get("parts");
+	        JSONArray parameters = (JSONArray)responseMap.get(sensor_name).get("parameters");
+	        if (parameters != null) {
+	        	for (Object obj : parameters) {
+		        	String name = (String)((JSONObject)obj).get("name");
+		        	componentDefinition.createAnnotation(new QName(celloNS,name,"cello"), 
+		        			(Double)((JSONObject)obj).get("value"));
+		        }
+	        }
+			JSONArray parts = (JSONArray)sensor.get(v2 ? "outputs" : "parts");
+			JSONObject oldsensor = sensor;
+			sensor = (v2 ? responseMap.get(sensor_name) : sensor);
 			String seq = "";
 			int annotationCount = 0;
 			int start = 1;
@@ -443,7 +475,9 @@ public class Cello2SBOL {
 					Double signal_high = (Double)sensor.get("signal_high");
 					Double alpha = null;
 					Double beta = null;
-			        JSONArray parameters = (JSONArray)sensor.get("parameters");
+					Double tau_on = null;
+					Double tau_off = null;
+
 			        if (parameters != null) {
 			        	for (Object obj : parameters) {
 				        	String name = (String)((JSONObject)obj).get("name");
@@ -464,14 +498,14 @@ public class Cello2SBOL {
 					document.createComponentDefinition(input_molecule, version, ComponentDefinition.SMALL_MOLECULE);
 					createComplex(document,input_molecule,partId+"_protein");
 					if (((String)sensor.get("type")).equals("complex_stimulator")) {
-						createActivation(document,input_molecule+"_"+partId+"_protein",promoter,signal_low,signal_high,alpha,beta);
+						createActivation(document,input_molecule+"_"+partId+"_protein",promoter,signal_low,signal_high,alpha,beta,tau_on,tau_off);
 					} else if (((String)sensor.get("type")).equals("sequester_inhibitor")) {
-						createInhibition(document,partId+"_protein",promoter,signal_low,signal_high,alpha,beta);
+						createInhibition(document,partId+"_protein",promoter,signal_low,signal_high,alpha,beta,tau_on,tau_off);
 					}
 				}
 				
 			}
-			
+			sensor = oldsensor;
 			Sequence sequence = document.createSequence(sensor_name+"_sequence", version, seq, Sequence.IUPAC_DNA);
 			sequence.setName(sensor_name+"_sequence");
 			sequence.addWasGeneratedBy(activityURI);
@@ -481,9 +515,15 @@ public class Cello2SBOL {
 		}
 	}
 
-	private static void convertOutputReportersToSBOL(SBOLDocument document,HashSet<JSONObject> output_reportersArr) throws SBOLValidationException {
+	private static void convertOutputReportersToSBOL(SBOLDocument document,HashSet<JSONObject> output_reportersArr,HashMap<String,JSONObject> responseMap) throws SBOLValidationException {
 		for (JSONObject sensor : output_reportersArr) {
 			String reporter_name = (String)sensor.get("name");
+			boolean v2 = (responseMap != null);
+			
+			if(v2) {
+				reporter_name = reporter_name.substring(0, reporter_name.length()-10);
+			}
+			
 			ComponentDefinition componentDefinition = 
 					document.createComponentDefinition(reporter_name, version, ComponentDefinition.DNA_REGION);
 			componentDefinition.setName(reporter_name);
@@ -492,11 +532,15 @@ public class Cello2SBOL {
 			componentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 	        componentDefinition.createAnnotation(new QName(celloNS,"gateType","cello"), "output_reporter");
 					        
-			JSONArray parts = (JSONArray)sensor.get("parts");
+			JSONArray parts = v2 ? (JSONArray) (((JSONObject) ((JSONArray)sensor.get("devices")).get(0)).get("components")): (JSONArray)sensor.get("parts");
+			
 			String seq = "";
 			int annotationCount = 0;
 			int start = 1;
 			for (Object obj2 : parts) {
+				if (((String)obj2).startsWith("#in")) {
+					continue;
+				}
 				String partId = (String)obj2;
 				document.getComponentDefinition(partId, version);
 				String cass_seq = document.getSequence(partId+"_sequence",version).getElements();
@@ -592,7 +636,7 @@ public class Cello2SBOL {
 		String pathToInputFile = null;
 		String pathToOutputFile = null;				
 		String databaseURL = databasePrefix;
-		String collectionId = "Cello_Parts";
+		String collectionId = "Eco1C1G1T1_Parts";
 		String collectionVersion = "1";
 		String collectionName = "Cello Parts";
 		String collectionDescription = "These are the Cello parts";
@@ -678,6 +722,11 @@ public class Cello2SBOL {
 					partsMap.put((String)ucf.get("name"),ucf);
 				} else if (collection.equals("functions")) {
 					functionMap.put((String)ucf.get("name"),ucf);
+				} else if (collection.equals("structures")) {
+					input_sensorsArr.add(ucf);
+				} else if (collection.equals("models")) {
+					String name = (String)ucf.get("name");
+					responseMap.put(name.substring(0, name.length()-6),ucf);
 				}
 			}
 			for (Object o : out)
@@ -689,6 +738,11 @@ public class Cello2SBOL {
 					functionMap.put((String)ucf.get("name"),ucf);
 				} else if (collection.equals("parts")) {
 					partsMap.put((String)ucf.get("name"),ucf);
+				} else if (collection.equals("structures")) {
+					output_reportersArr.add(ucf);
+				} else if (collection.equals("models")) {
+					String name = (String)ucf.get("name");
+					responseMap.put(name.substring(0, name.length()-6),ucf);
 				}
 			}
 
@@ -765,13 +819,15 @@ public class Cello2SBOL {
 		convertPartsToSBOL(document,partsMap);
 		if (v2) {
 	        convertGatePartsToSBOL(document,gate_partsArr,gatesMap,responseMap,functionMap);
+	        convertInputSensorsToSBOL(document,input_sensorsArr,responseMap);
+	        convertOutputReportersToSBOL(document,output_reportersArr,responseMap);
 		}
 		else {
 	        convertGatePartsToSBOL(document,gate_partsArr,gatesMap,responseMap,null);
+	        convertInputSensorsToSBOL(document,input_sensorsArr,null);
+	        convertOutputReportersToSBOL(document,output_reportersArr,null);
 		}
 
-        convertInputSensorsToSBOL(document,input_sensorsArr);
-        convertOutputReportersToSBOL(document,output_reportersArr);
         
         //createSensorsReporters(document);
         
