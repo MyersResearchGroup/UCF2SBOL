@@ -1,10 +1,10 @@
+package UCF2SBOL.UCF2SBOL;
+
 import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -18,7 +18,6 @@ import java.util.TimeZone;
 import javax.xml.namespace.QName;
 
 import org.joda.time.DateTime;
-import org.joda.time.base.AbstractDateTime;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -339,9 +338,13 @@ public class Cello2SBOL {
 	        		(String)gatesMap.get(gate_name).get(v2 ? "color" : "color_hexcode"));
 	        componentDefinition.createAnnotation(new QName(celloNS,"response_function","cello"), 
 	        		respfxn);
-	        if (responseMap.get(gate_name).get("tandem_efficiency_factor") != null) {
+	        if (((JSONObject)responseMap.get(gate_name).get("functions")).get("tandem_interference_factor") != null) {
 	        	componentDefinition.createAnnotation(new QName(celloNS,"tandem_efficiency_factor","cello"), 
-		        		(String)responseMap.get(gate_name).get("tandem_efficiency_factor"));
+	        			(String) ((functionMap.get((String)(((JSONObject)responseMap.get(gate_name).get("functions")).get("tandem_interference_factor")))).get("equation")));
+	        }
+	        if (((JSONObject)responseMap.get(gate_name).get("functions")).get("tandem_input_composition") != null) {
+	        	componentDefinition.createAnnotation(new QName(celloNS,"tandem_input_composition","cello"), 
+	        			(String) ((functionMap.get((String)(((JSONObject)responseMap.get(gate_name).get("functions")).get("tandem_interference_factor")))).get("equation")));
 	        }
 	        
 	        JSONArray parameters = (JSONArray)responseMap.get(gate_name).get("parameters");
@@ -418,15 +421,20 @@ public class Cello2SBOL {
 		}
 	}
 
-	private static void convertInputSensorsToSBOL(SBOLDocument document,HashSet<JSONObject> input_sensorsArr,HashMap<String,JSONObject> responseMap) throws SBOLValidationException {
+	private static void convertInputSensorsToSBOL(SBOLDocument document,HashSet<JSONObject> input_sensorsArr,HashMap<String,JSONObject> responseMap, HashMap<String,JSONObject> functionMap) throws SBOLValidationException {
 		for (JSONObject sensor : input_sensorsArr) {
 			String sensor_name = (String)sensor.get("name");
 			boolean v2 = (responseMap != null);
+			String respfxn = null;
 			
 			if(v2) {
 				sensor_name = sensor_name.substring(0, sensor_name.length()-10);
+				respfxn = (String) ((functionMap.get((String)(((JSONObject)responseMap.get(sensor_name).get("functions")).get("response_function")))).get("equation"));
 			}
 			
+			else {
+				respfxn = (String)responseMap.get(sensor_name).get("equation");
+			}
 			
 			ComponentDefinition componentDefinition = 
 					document.createComponentDefinition(sensor_name, version, ComponentDefinition.DNA_REGION);
@@ -435,6 +443,14 @@ public class Cello2SBOL {
 			componentDefinition.addWasGeneratedBy(activityURI);
 			componentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 	        componentDefinition.createAnnotation(new QName(celloNS,"gateType","cello"), "input_sensor");
+	        componentDefinition.createAnnotation(new QName(celloNS,"response_function","cello"), 
+	        		respfxn);
+	        
+	        if (((JSONObject)responseMap.get(sensor_name).get("functions")).get("tandem_interference_factor") != null) {
+	        	componentDefinition.createAnnotation(new QName(celloNS,"tandem_efficiency_factor","cello"), 
+	        			(String) ((functionMap.get((String)(((JSONObject)responseMap.get(sensor_name).get("functions")).get("tandem_interference_factor")))).get("equation")));
+	        }
+	        
 	        JSONArray parameters = (JSONArray)responseMap.get(sensor_name).get("parameters");
 	        if (parameters != null) {
 	        	for (Object obj : parameters) {
@@ -531,7 +547,14 @@ public class Cello2SBOL {
 			componentDefinition.addWasGeneratedBy(activityURI);
 			componentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 	        componentDefinition.createAnnotation(new QName(celloNS,"gateType","cello"), "output_reporter");
-					        
+	        JSONArray parameters = (JSONArray)responseMap.get(reporter_name).get("parameters");
+	        if (parameters != null) {
+	        	for (Object obj : parameters) {
+		        	String name = (String)((JSONObject)obj).get("name");
+		        	componentDefinition.createAnnotation(new QName(celloNS,name,"cello"), 
+		        			(Double)((JSONObject)obj).get("value"));
+		        }
+	        }		        
 			JSONArray parts = v2 ? (JSONArray) (((JSONObject) ((JSONArray)sensor.get("devices")).get(0)).get("components")): (JSONArray)sensor.get("parts");
 			
 			String seq = "";
@@ -819,12 +842,12 @@ public class Cello2SBOL {
 		convertPartsToSBOL(document,partsMap);
 		if (v2) {
 	        convertGatePartsToSBOL(document,gate_partsArr,gatesMap,responseMap,functionMap);
-	        convertInputSensorsToSBOL(document,input_sensorsArr,responseMap);
+	        convertInputSensorsToSBOL(document,input_sensorsArr,responseMap,functionMap);
 	        convertOutputReportersToSBOL(document,output_reportersArr,responseMap);
 		}
 		else {
 	        convertGatePartsToSBOL(document,gate_partsArr,gatesMap,responseMap,null);
-	        convertInputSensorsToSBOL(document,input_sensorsArr,null);
+	        convertInputSensorsToSBOL(document,input_sensorsArr,null,null);
 	        convertOutputReportersToSBOL(document,output_reportersArr,null);
 		}
 
