@@ -104,7 +104,6 @@ public class Cello2SBOL {
 			sequence.setName(name+"_sequence");
 			sequence.addWasGeneratedBy(activityURI);
 			sequence.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
-
 			ComponentDefinition componentDefinition = 
 					document.createComponentDefinition(name, version, ComponentDefinition.DNA_REGION);
 			componentDefinition.setName(name);
@@ -508,8 +507,6 @@ public class Cello2SBOL {
 				        	} 
 				        }
 			        }
-			        
-
 
 					document.createComponentDefinition(input_molecule, version, ComponentDefinition.SMALL_MOLECULE);
 					createComplex(document,input_molecule,partId+"_protein");
@@ -531,13 +528,19 @@ public class Cello2SBOL {
 		}
 	}
 
-	private static void convertOutputReportersToSBOL(SBOLDocument document,HashSet<JSONObject> output_reportersArr,HashMap<String,JSONObject> responseMap) throws SBOLValidationException {
+	private static void convertOutputReportersToSBOL(SBOLDocument document,HashSet<JSONObject> output_reportersArr,HashMap<String,JSONObject> responseMap, HashMap<String,JSONObject> functionMap) throws SBOLValidationException {
 		for (JSONObject sensor : output_reportersArr) {
 			String reporter_name = (String)sensor.get("name");
 			boolean v2 = (responseMap != null);
+			String respfxn = null;
 			
 			if(v2) {
 				reporter_name = reporter_name.substring(0, reporter_name.length()-10);
+				respfxn = (String) ((functionMap.get((String)(((JSONObject)responseMap.get(reporter_name).get("functions")).get("response_function")))).get("equation"));
+			}
+			
+			else {
+				respfxn = (String)responseMap.get(reporter_name).get("equation");
 			}
 			
 			ComponentDefinition componentDefinition = 
@@ -547,6 +550,14 @@ public class Cello2SBOL {
 			componentDefinition.addWasGeneratedBy(activityURI);
 			componentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 	        componentDefinition.createAnnotation(new QName(celloNS,"gateType","cello"), "output_reporter");
+	        componentDefinition.createAnnotation(new QName(celloNS,"response_function","cello"), 
+	        		respfxn);
+	        
+	        if (((JSONObject)responseMap.get(reporter_name).get("functions")).get("tandem_interference_factor") != null) {
+	        	componentDefinition.createAnnotation(new QName(celloNS,"tandem_efficiency_factor","cello"), 
+	        			(String) ((functionMap.get((String)(((JSONObject)responseMap.get(reporter_name).get("functions")).get("tandem_interference_factor")))).get("equation")));
+	        }
+	        
 	        JSONArray parameters = (JSONArray)responseMap.get(reporter_name).get("parameters");
 	        if (parameters != null) {
 	        	for (Object obj : parameters) {
@@ -565,7 +576,7 @@ public class Cello2SBOL {
 					continue;
 				}
 				String partId = (String)obj2;
-				document.getComponentDefinition(partId, version);
+				ComponentDefinition currentComponent = document.getComponentDefinition(partId, version);
 				String cass_seq = document.getSequence(partId+"_sequence",version).getElements();
 				seq += cass_seq;
 				//currentComponent = 
@@ -582,6 +593,8 @@ public class Cello2SBOL {
 				start += cass_seq.length();
 				annotationCount++;
 				
+				String output_protein = partId.replace("_cassette", "");
+				createProtein(document,output_protein,currentComponent);
 			}
 			
 			Sequence sequence = document.createSequence(reporter_name+"_sequence", version, seq, Sequence.IUPAC_DNA);
@@ -843,12 +856,12 @@ public class Cello2SBOL {
 		if (v2) {
 	        convertGatePartsToSBOL(document,gate_partsArr,gatesMap,responseMap,functionMap);
 	        convertInputSensorsToSBOL(document,input_sensorsArr,responseMap,functionMap);
-	        convertOutputReportersToSBOL(document,output_reportersArr,responseMap);
+	        convertOutputReportersToSBOL(document,output_reportersArr,responseMap,functionMap);
 		}
 		else {
 	        convertGatePartsToSBOL(document,gate_partsArr,gatesMap,responseMap,null);
 	        convertInputSensorsToSBOL(document,input_sensorsArr,null,null);
-	        convertOutputReportersToSBOL(document,output_reportersArr,null);
+	        convertOutputReportersToSBOL(document,output_reportersArr,null,null);
 		}
 
         
@@ -904,9 +917,8 @@ public class Cello2SBOL {
 
     			String collection = (String) ucf.get("collection");
     			if (collection.equals("gate_toxicity")) {
-
     				String gateName = (String)ucf.get("gate_name");
-    				File file = new File(tmpDir + gateName+"_gate_toxicity.json");
+    				File file = new File(args[3] + gateName+"_gate_toxicity.json");
     				FileOutputStream stream = new FileOutputStream(file);
     				BufferedOutputStream buffer = new BufferedOutputStream(stream);
     				stream.write(ucf.toJSONString().getBytes());
@@ -923,6 +935,29 @@ public class Cello2SBOL {
     				buffer.close();
     				sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion), 
     						tmpDir + "circuit_rules.json");
+    			} else if (collection.equals("functions")) {
+    				String gateName = (String)ucf.get("name");
+    				if (gateName.endsWith("cytometry")) {
+        				File file = new File(args[3] + gateName+".json");
+        				FileOutputStream stream = new FileOutputStream(file);
+        				BufferedOutputStream buffer = new BufferedOutputStream(stream);
+        				stream.write(ucf.toJSONString().getBytes());
+        				stream.close();
+        				buffer.close();
+        				String SBHgateName = gateName.replace("_cytometry", "");
+        				sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + SBHgateName + "/" + collectionVersion), 
+        						tmpDir + gateName+".json");
+    				} else if (gateName.endsWith("toxicity")) {
+        				File file = new File(args[3] + gateName+".json");
+        				FileOutputStream stream = new FileOutputStream(file);
+        				BufferedOutputStream buffer = new BufferedOutputStream(stream);
+        				stream.write(ucf.toJSONString().getBytes());
+        				stream.close();
+        				buffer.close();
+        				String SBHgateName = gateName.replace("_toxicity", "");
+        				sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + SBHgateName + "/" + collectionVersion), 
+        						tmpDir + gateName+".json");
+    				}
     			} else if (collection.equals("device_rules")) {
     				File file = new File(args[3] + "device_rules.json");
     				FileOutputStream stream = new FileOutputStream(file);
