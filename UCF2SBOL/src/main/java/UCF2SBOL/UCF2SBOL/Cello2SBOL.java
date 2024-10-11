@@ -99,6 +99,8 @@ public class Cello2SBOL {
 
 		for (JSONObject part : partsMap.values()) {
 			String name = (String)part.get("name");
+			name = name.replace("-", "_");
+			System.out.println(name);
 			String dnasequence = (String)part.get("dnasequence");
 			Sequence sequence = document.createSequence(name + "_sequence", version, dnasequence, Sequence.IUPAC_DNA);
 			sequence.setName(name+"_sequence");
