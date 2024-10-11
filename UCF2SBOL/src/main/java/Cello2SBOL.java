@@ -1,10 +1,10 @@
-package UCF2SBOL.UCF2SBOL;
-
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -18,6 +18,7 @@ import java.util.TimeZone;
 import javax.xml.namespace.QName;
 
 import org.joda.time.DateTime;
+import org.joda.time.base.AbstractDateTime;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -56,312 +57,20 @@ public class Cello2SBOL {
 	static URI activityURI;
 	static String createdDate;
 	
-	private static void createSensor(SBOLDocument doc,String id,ComponentDefinition prom,
-			ComponentDefinition riboJ,ComponentDefinition rbs,ComponentDefinition cds,ComponentDefinition term) 
-					throws SBOLValidationException {
-		ComponentDefinition Sensor = doc.createComponentDefinition(id, version, ComponentDefinition.DNA_REGION);
-		Sensor.addRole(SequenceOntology.ENGINEERED_REGION);
-
-		Sensor.createComponent(prom.getDisplayId(), AccessType.PRIVATE, prom.getIdentity());
-		int start = 1;
-		int end = prom.getSequenceByEncoding(Sequence.IUPAC_DNA).getElements().length();
-		Sensor.createSequenceAnnotation("annot1", "range", start, end, OrientationType.INLINE).setComponent(prom.getDisplayId());
-
-		Sensor.createComponent(riboJ.getDisplayId(), AccessType.PRIVATE, riboJ.getIdentity());
-		start = end+1;
-		end = start+riboJ.getSequenceByEncoding(Sequence.IUPAC_DNA).getElements().length()-1;
-		Sensor.createSequenceAnnotation("annot2", "range", start, end, OrientationType.INLINE).setComponent(riboJ.getDisplayId());
-
-		Sensor.createComponent(rbs.getDisplayId(), AccessType.PRIVATE, rbs.getIdentity());
-		start = end+1;
-		end = start+rbs.getSequenceByEncoding(Sequence.IUPAC_DNA).getElements().length()-1;
-		Sensor.createSequenceAnnotation("annot3", "range", start, end, OrientationType.INLINE).setComponent(rbs.getDisplayId());
-
-		Sensor.createComponent(cds.getDisplayId(), AccessType.PRIVATE, cds.getIdentity());
-		start = end+1;
-		end = start+cds.getSequenceByEncoding(Sequence.IUPAC_DNA).getElements().length()-1;
-		Sensor.createSequenceAnnotation("annot4", "range", start, end, OrientationType.INLINE).setComponent(cds.getDisplayId());
-
-		Sensor.createComponent(term.getDisplayId(), AccessType.PRIVATE, term.getIdentity());
-		start = end+1;
-		end = start+term.getSequenceByEncoding(Sequence.IUPAC_DNA).getElements().length()-1;
-		Sensor.createSequenceAnnotation("annot5", "range", start, end, OrientationType.INLINE).setComponent(term.getDisplayId());
-
-		Sequence Sensor_seq = doc.createSequence(id+"_seq", version, 
-				Sensor.getImpliedNucleicAcidSequence(),Sequence.IUPAC_DNA);
-		Sensor.addSequence(Sensor_seq);
-	}
-    
-    private static void createSensorsReporters(SBOLDocument doc) throws URISyntaxException,
-    	SBOLValidationException, SBOLConversionException, IOException 
-	{ 
-		
-		// YFP Reporter
-//		ComponentDefinition ribozyme_scar = doc.createComponentDefinition("Ribozyme_scar", version, ComponentDefinition.DNA_REGION);
-//		ribozyme_scar.addRole(getRole("scar"));
-//		String ribozyme_scar_sequence = "CTGA";
-//		Sequence ribozyme_scar_seq = doc.createSequence("Ribozyme_scar_sequence", ribozyme_scar_sequence, Sequence.IUPAC_DNA);
-//		ribozyme_scar.addSequence(ribozyme_scar_seq);
-		
-		ComponentDefinition riboJ = doc.createComponentDefinition("RiboJ", version, ComponentDefinition.DNA_REGION);
-		riboJ.addRole(getRole("ribozyme"));
-		String riboJ_sequence = "AGCTGTCACCGGATGTGCTTTCCGGTCTGATGAGTCCGTGAGGACGAAACAGCCTCTACAAATAATTTTGTTTAA";
-		Sequence riboJ_seq = doc.createSequence("RiboJ_sequence", riboJ_sequence, Sequence.IUPAC_DNA);
-		riboJ.addSequence(riboJ_seq);
-		
-//		ComponentDefinition RBS_upstream_scar = doc.createComponentDefinition("RBS_upstream_scar", version, ComponentDefinition.DNA_REGION);
-//		RBS_upstream_scar.addRole(getRole("scar"));
-//		String RBS_upstream_scar_sequence = "TACTAGAG";
-//		Sequence RBS_upstream_scar_seq = doc.createSequence("RBS_upstream_scar_sequence", RBS_upstream_scar_sequence, Sequence.IUPAC_DNA);
-//		RBS_upstream_scar.addSequence(RBS_upstream_scar_seq);
-
-		ComponentDefinition BBa_B0064_rbs = doc.createComponentDefinition("BBa_B0064_rbs", version, ComponentDefinition.DNA_REGION);
-		BBa_B0064_rbs.addRole(getRole("rbs"));
-		String BBa_B0064_rbs_sequence = "AAAGAGGGGAAA";
-		Sequence BBa_B0064_rbs_seq = doc.createSequence("BBa_B0064_rbs_sequence", BBa_B0064_rbs_sequence, Sequence.IUPAC_DNA);
-		BBa_B0064_rbs.addSequence(BBa_B0064_rbs_seq);
-		
-//		ComponentDefinition RBS_CDS_scar = doc.createComponentDefinition("RBS_CDS_scar", version, ComponentDefinition.DNA_REGION);
-//		RBS_CDS_scar.addRole(getRole("scar"));
-//		String RBS_CDS_scar_sequence = "TACTAG";
-//		Sequence RBS_CDS_scar_seq = doc.createSequence("RBS_CDS_scar_sequence", RBS_CDS_scar_sequence, Sequence.IUPAC_DNA);
-//		RBS_CDS_scar.addSequence(RBS_CDS_scar_seq);
-		
-		ComponentDefinition yfp_cds = createCDS(doc, "YFP");
-		createProtein(doc,"YFP",yfp_cds);
-		String yfp_sequence = "ATGGTGAGCAAGGGCGAGGAGCTGTTCACCGGGGTGGTGCCCATCCTGGTCGAGCTGGACGGCGACGTAAACGGCCACAAGTTCAGCGTGTCCGGCGAGGGCGAGGGCGATGCCACCTACGGCAAGCTGACCCTGAAGTTCATCTGCACCACAGGCAAGCTGCCCGTGCCCTGGCCCACCCTCGTGACCACCTTCGGCTACGGCCTGCAATGCTTCGCCCGCTACCCCGACCACATGAAGCTGCACGACTTCTTCAAGTCCGCCATGCCCGAAGGCTACGTCCAGGAGCGCACCATCTTCTTCAAGGACGACGGCAACTACAAGACCCGCGCCGAGGTGAAGTTCGAGGGCGACACCCTGGTGAACCGCATCGAGCTGAAGGGCATCGACTTCAAGGAGGACGGCAACATCCTGGGGCACAAGCTGGAGTACAACTACAACAGCCACAACGTCTATATCATGGCCGACAAGCAGAAGAACGGCATCAAGGTGAACTTCAAGATCCGCCACAACATCGAGGACGGCAGCGTGCAGCTCGCCGACCACTACCAGCAGAACACCCCAATCGGCGACGGCCCCGTGCTGCTGCCCGACAACCACTACCTTAGCTACCAGTCCGCCCTGAGCAAAGACCCCAACGAGAAGCGCGATCACATGGTCCTGCTGGAGTTCGTGACCGCCGCCGGGATCACTCTCGGCATGGACGAGCTGTACAAGTAA";
-		Sequence yfp_seq= doc.createSequence("YFP_protein_sequence", version, yfp_sequence, Sequence.IUPAC_DNA);
-		yfp_cds.addSequence(yfp_seq);
-		
-		ComponentDefinition L3S2P21 = doc.createComponentDefinition("L3S2P21_terminator", version, ComponentDefinition.DNA_REGION);
-		L3S2P21.addRole(getRole("terminator"));
-		String L3S2P21_sequence = "CTCGGTACCAAATTCCAGAAAAGAGGCCTCCCGAAAGGGGGGCCTTTTTTCGTTTTGGTCC";
-		Sequence L3S2P21_seq = doc.createSequence("L3S2P21_terminator_sequence", L3S2P21_sequence, Sequence.IUPAC_DNA);
-		L3S2P21.addSequence(L3S2P21_seq);
-
-		ComponentDefinition YFP_Reporter = doc.createComponentDefinition("YFP_reporter", version, ComponentDefinition.DNA_REGION);
-		YFP_Reporter.addRole(SequenceOntology.ENGINEERED_REGION);
-
-//		YFP_Reporter.createComponent("Ribozyme_scar", AccessType.PRIVATE, ribozyme_scar.getIdentity());
-//		int start = 1;
-//		int end = ribozyme_scar.getSequenceByEncoding(Sequence.IUPAC_DNA).getElements().length();
-//		YFP_Reporter.createSequenceAnnotation("annot1", "range", start, end, OrientationType.INLINE).setComponent("Ribozyme_scar");
-
-		YFP_Reporter.createComponent("RiboJ", AccessType.PRIVATE, riboJ.getIdentity());
-//		start = end+1;
-//		end = start+riboJ.getSequenceByEncoding(Sequence.IUPAC_DNA).getElements().length()-1;
-		int start = 1;
-		int end = riboJ.getSequenceByEncoding(Sequence.IUPAC_DNA).getElements().length();
-		YFP_Reporter.createSequenceAnnotation("annot2", "range", start, end, OrientationType.INLINE).setComponent("RiboJ");
-
-//		YFP_Reporter.createComponent("RBS_upstream_scar", AccessType.PRIVATE, RBS_upstream_scar.getIdentity());
-//		start = end+1;
-//		end = start+RBS_upstream_scar.getSequenceByEncoding(Sequence.IUPAC_DNA).getElements().length()-1;
-//		YFP_Reporter.createSequenceAnnotation("annot3", "range", start, end, OrientationType.INLINE).setComponent("RBS_upstream_scar");
-
-		YFP_Reporter.createComponent("BBa_B0064_rbs", AccessType.PRIVATE, BBa_B0064_rbs.getIdentity());
-		start = end+1;
-		end = start+BBa_B0064_rbs.getSequenceByEncoding(Sequence.IUPAC_DNA).getElements().length()-1;
-		YFP_Reporter.createSequenceAnnotation("annot4", "range", start, end, OrientationType.INLINE).setComponent("BBa_B0064_rbs");
-
-//		YFP_Reporter.createComponent("RBS_CDS_scar", AccessType.PRIVATE, RBS_CDS_scar.getIdentity());
-//		start = end+1;
-//		end = start+RBS_CDS_scar.getSequenceByEncoding(Sequence.IUPAC_DNA).getElements().length()-1;
-//		YFP_Reporter.createSequenceAnnotation("annot5", "range", start, end, OrientationType.INLINE).setComponent("RBS_CDS_scar");
-
-		YFP_Reporter.createComponent("YFP", AccessType.PRIVATE, yfp_cds.getIdentity());
-		start = end+1;
-		end = start+yfp_cds.getSequenceByEncoding(Sequence.IUPAC_DNA).getElements().length()-1;
-		YFP_Reporter.createSequenceAnnotation("annot6", "range", start, end, OrientationType.INLINE).setComponent("YFP");
-
-		YFP_Reporter.createComponent("L3S2P21", AccessType.PRIVATE, L3S2P21.getIdentity());
-		start = end+1;
-		end = start+L3S2P21.getSequenceByEncoding(Sequence.IUPAC_DNA).getElements().length()-1;
-		YFP_Reporter.createSequenceAnnotation("annot7", "range", start, end, OrientationType.INLINE).setComponent("L3S2P21");
-
-		Sequence YRP_Reporter_seq = doc.createSequence("YFP_reporter_seq", version, 
-				YFP_Reporter.getImpliedNucleicAcidSequence(),Sequence.IUPAC_DNA);
-		YFP_Reporter.addSequence(YRP_Reporter_seq);
-		
-    	// Constitutive Promoter
-		ComponentDefinition pCONST_prom = createPromoter(doc, "pCONST");
-		String pCONST_prom_sequences = "GATAAGTCCCTAACTTTTACAGCTAGCTCAGTCCTAGGTATTATGCTAGC";
-		Sequence pCONST_prom_seq= doc.createSequence("pCONST_sequence", version, pCONST_prom_sequences, Sequence.IUPAC_DNA);
-		pCONST_prom.addSequence(pCONST_prom_seq);
-
-		// LacI Sensor
-		ComponentDefinition pTac_prom = createPromoter(doc, "pTac");
-		ComponentDefinition lacI_cds = createCDS(doc, "LacI");
-		String lacI_cds_sequences = "atgaaaccagtaacgttatacgatgtcgcagagtatgccggtgtctcttatcagaccgtttcccgcgt"+
-				"ggtgaaccaggccagccacgtttctgcgaaaacgcgggaaaaagtggaagcggcgatggcggagctgaattacattcccaaccgcgtg"+
-				"gcacaacaactggcgggcaaacagtcgttgctgattggcgttgccacctccagtctggccctgcacgcgccgtcgcaaattgtcgcgg"+
-				"cgattaaatctcgcgccgatcaactgggtgccagcgtggtggtgtcgatggtagaacgaagcggcgtcgaagcctgtaaagcggcggt"+
-				"gcacaatcttctcgcgcaacgcgtcagtgggctgatcattaactatccgctggatgaccaggatgccattgctgtggaagctgcctgc"+
-				"actaatgttccggcgttatttcttgatgtctctgaccagacacccatcaacagtattattttctcccatgaggacggtacgcgactgg"+
-				"gcgtggagcatctggtcgcattgggtcaccagcaaatcgcgctgttagcgggcccattaagttctgtctcggcgcgtctgcgtctggc"+
-				"tggctggcataaatatctcactcgcaatcaaattcagccgatagcggaacgggaaggcgactggagtgccatgtccggttttcaacaa"+
-				"accatgcaaatgctgaatgagggcatcgttcccactgcgatgctggttgccaacgatcagatggcgctgggcgcaatgcgcgccatta"+
-				"ccgagtccgggctgcgcgttggtgcggatatctcggtagtgggatacgacgataccgaagatagctcatgttatatcccgccgttaac"+
-				"caccatcaaacaggattttcgcctgctggggcaaaccagcgtggaccgcttgctgcaactctctcagggccaggcggtgaagggcaat"+
-				"cagctgttgccagtctcactggtgaaaagaaaaaccaccctggcgcccaatacgcaaaccgcctctccccgcgcgttggccgattcat"+
-				"taatgcagctggcacgacaggtttcccgactggaaagcgggcagtgataa";
-		Sequence lacI_cds_seq = doc.createSequence("LacI_sequence", version, lacI_cds_sequences, Sequence.IUPAC_DNA);
-		lacI_cds.addSequence(lacI_cds_seq);
-		createProtein(doc,"LacI",lacI_cds);
-		doc.createComponentDefinition("IPTG", version, ComponentDefinition.SMALL_MOLECULE);
-		createComplex(doc,"IPTG","LacI_protein");
-		createInhibition(doc,"LacI_protein","pTac",0.0034,2.8,null,null);
-		String pTac_prom_sequences = "AACGATCGTTGGCTGTGTTGACAATTAATCATCGGCTCGTATAATGTGTGGAATTGTGAGCGCTCACAATT";
-		Sequence pTac_prom_seq= doc.createSequence("pTac_sequence", version, pTac_prom_sequences, Sequence.IUPAC_DNA);
-		pTac_prom.addSequence(pTac_prom_seq);
-		createSensor(doc,"LacI_sensor",pCONST_prom,riboJ,BBa_B0064_rbs,lacI_cds,L3S2P21);
-
-		// TetR Sensor
-		ComponentDefinition pTet_prom = createPromoter(doc, "pTet");
-		ComponentDefinition tetR_cds = createCDS(doc, "TetR");
-		String tetR_cds_sequences = "atgtccagattagataaaagtaaagtgattaacagcgcattagagctgcttaatgaggtcggaatcgaaggtttaacaacccgtaaactcgcccagaagctaggtgtagagcagcctacattgtattggcatgtaaaaaataagcgggctttgctcgacgccttagccattgagatgttagataggcaccatactcacttttgccctttagaaggggaaagctggcaagattttttacgtaataacgctaaaagttttagatgtgctttactaagtcatcgcgatggagcaaaagtacatttaggtacacggcctacagaaaaacagtatgaaactctcgaaaatcaattagcctttttatgccaacaaggtttttcactagagaatgcattatatgcactcagcgctgtggggcattttactttaggttgcgtattggaagatcaagagcatcaagtcgctaaagaagaaagggaaacacctactactgatagtatgccgccattattacgacaagctatcgaattatttgatcaccaaggtgcagagccagccttcttattcggccttgaattgatcatatgcggattagaaaaacaacttaaatgtgaaagtgggtcctaa";
-		Sequence tetR_cds_seq = doc.createSequence("TetR_sequence", version, tetR_cds_sequences, Sequence.IUPAC_DNA);
-		tetR_cds.addSequence(tetR_cds_seq);
-		createProtein(doc,"TetR",tetR_cds);
-		doc.createComponentDefinition("aTc", version, ComponentDefinition.SMALL_MOLECULE);
-		createComplex(doc,"aTc","TetR_protein");
-		createInhibition(doc,"TetR_protein","pTet",0.0013,4.4,null,null);
-		String pTet_prom_sequences = "TACTCCACCGTTGGCTTTTTTCCCTATCAGTGATAGAGATTGACATCCCTATCAGTGATAGAGATAATGAGCAC";
-		Sequence pTet_prom_seq= doc.createSequence("pTet_sequence", version, pTet_prom_sequences, Sequence.IUPAC_DNA);
-		pTet_prom.addSequence(pTet_prom_seq);
-		createSensor(doc,"TetR_sensor",pCONST_prom,riboJ,BBa_B0064_rbs,tetR_cds,L3S2P21);
-		
-		// AraC Sensor
-		ComponentDefinition pBAD_prom = createPromoter(doc, "pBAD");
-		ComponentDefinition araC_cds = createCDS(doc, "AraC");
-		String araC_cds_sequences = "atggctgaagcgcaaaatgatcccctgctgccgggatactcgtttaatgcccatctggtggcgggtttaacgccgattgaggccaacggttatctcgatttttttatcgaccgaccgctgggaatgaaaggttatattctcaatctcaccattcgcggtcagggggtggtgaaaaatcagggacgagaatttgtttgccgaccgggtgatattttgctgttcccgccaggagagattcatcactacggtcgtcatccggaggctcgcgaatggtatcaccagtgggtttactttcgtccgcgcgcctactggcatgaatggcttaactggccgtcaatatttgccaatacggggttctttcgcccggatgaagcgcaccagccgcatttcagcgacctgtttgggcaaatcattaacgccgggcaaggggaagggcgctattcggagctgctggcgataaatctgcttgagcaattgttactgcggcgcatggaagcgattaacgagtcgctccatccaccgatggataatcgggtacgcgaggcttgtcagtacatcagcgatcacctggcagacagcaattttgatatcgccagcgtcgcacagcatgtttgcttgtcgccgtcgcgtctgtcacatcttttccgccagcagttagggattagcgtcttaagctggcgcgaggaccaacgtatcagccaggcgaagctgcttttgagcaccacccggatgcctatcgccaccgtcggtcgcaatgttggttttgacgatcaactctatttctcgcgggtatttaaaaaatgcaccggggccagcccgagcgagttccgtgccggttgtgaagaaaaagtgaatgatgtagccgtcaagttgtcataa"; 
-		Sequence araC_cds_seq = doc.createSequence("AraC_sequence", version, araC_cds_sequences, Sequence.IUPAC_DNA);
-		araC_cds.addSequence(araC_cds_seq);
-		createProtein(doc,"AraC",araC_cds);
-		doc.createComponentDefinition("Ara", version, ComponentDefinition.SMALL_MOLECULE);
-		createComplex(doc,"Ara","AraC_protein");
-		createActivation(doc,"Ara_AraC_protein","pBAD",0.0082,2.5,null,null);
-		String pBAD_prom_sequences = "ACTTTTCATACTCCCGCCATTCAGAGAAGAAACCAATTGTCCATATTGCATCAGACATTGCCGTCACTGCGTCTTTTACTGGCTCTTCTCGCTAACCAAACCGGTAACCCCGCTTATTAAAAGCATTCTGTAACAAAGCGGGACCAAAGCCATGACAAAAACGCGTAACAAAAGTGTCTATAATCACGGCAGAAAAGTCCACATTGATTATTTGCACGGCGTCACACTTTGCTATGCCATAGCATTTTTATCCATAAGATTAGCGGATCCTACCTGACGCTTTTTATCGCAACTCTCTACTGTTTCTCCATACCCGTTTTTTTGGGCTAGC";
-		Sequence pBAD_prom_seq= doc.createSequence("pBAD_sequence", version, pBAD_prom_sequences, Sequence.IUPAC_DNA);
-		pBAD_prom.addSequence(pBAD_prom_seq);
-		createSensor(doc,"AraC_sensor",pCONST_prom,riboJ,BBa_B0064_rbs,araC_cds,L3S2P21);
-
-		// LuxR Sensor
-		ComponentDefinition pLuxStar_prom = createPromoter(doc, "pLuxStar");
-		ComponentDefinition luxR_cds = createCDS(doc, "LuxR");
-		String luxR_cds_sequences = "ATGAACATTAAAAATATAAATGCTAATGAGAAGATAATTGATAAAATTAAAACTTGTAATAATAATAAAG"+
-				"ATATTAATCAATGTTTATCTGAAATAGCAAAGATAATACATTGTGAATATTACCTATTCGCTATTATCTA"+
-				"TCCTCACTCAATAATTAAACCTGATGTTTCAATTATAGATAATTACCCTGAAAAATGGCGTAAATATTAT"+
-				"GATGATGCCGGACTACTAGAATATGACCCTGTAGTCGATTACTCTAAGTCCCATCATTCACCAATTAATT"+
-				"GGAACGTATTCGAAAAAAAAACAATAAAAAAAGAGTCTCCGAATGTAATAAAAGAAGCACAGGAATCGGG"+
-				"ACTCATTACTGGATTTAGCTTTCCAATTCATACTGCAAGTAATGGTTTTGGAATGCTCAGTTTTGCTCAT"+
-				"TCAGATAAAGATATTTATACTGACAGTTTATTTTTACACGCTAGTACAAATGTACCATTAATGCTTCCTT"+
-				"CTTTAGTCGATAATTATCAAAAAATAAATACGACACGTAAAAAGTCAGATTCTATTTTAACAAAAAGAGA"+
-				"AAAAGAATGCTTAGCGTGGGCGAGTGAAGGAAAAAGTACATGGGATATTTCAAAAATACTTGGCTGCAGT"+
-				"GAGCGTACTGTCACTTTTCATTTAACCAATACTCAAATGAAACTCAATACAACTAACCGCTGCCAAAGTA"+
-				"TTTCTAAAGCAATTTTAACTGGCGCCATTAATTGTCCATACCTTAAAAATTAA";
-		Sequence luxR_cds_seq = doc.createSequence("LuxR_sequence", version, luxR_cds_sequences, Sequence.IUPAC_DNA);
-		luxR_cds.addSequence(luxR_cds_seq);
-		createProtein(doc,"LuxR",luxR_cds);
-		doc.createComponentDefinition("HSL", version, ComponentDefinition.SMALL_MOLECULE);
-		createComplex(doc,"HSL","LuxR_protein");
-		createActivation(doc,"HSL_LuxR_protein","pLuxStar",0.025,0.31,null,null);
-		String pLuxStar_prom_sequences = "ATAGCTTCTTACCGGACCTGTAGGATCGTACAGGTTTACGCAAGAAAATGGTTTGTTACTTTCGAATAAA";
-		Sequence pLuxStar_prom_seq= doc.createSequence("pLuxStar_sequence", version, pLuxStar_prom_sequences, Sequence.IUPAC_DNA);
-		pLuxStar_prom.addSequence(pLuxStar_prom_seq);
-		createSensor(doc,"LuxR_sensor",pCONST_prom,riboJ,BBa_B0064_rbs,luxR_cds,L3S2P21);
-		
-		// TODO: likely not correct
-		/*
-		ComponentDefinition gfp_cds = createCDS(doc, "GFP");
-		createProtein(doc,"GFP",gfp_cds);
-		String gfp_sequence = "AGTTCCAGTCGAGACCTGAAGTGGGTTTCCTGATGAGGCTGTGGAGAGAGCGAAAGCTTTACTCCCGCACAAGCCGAAACTGGAACCTCTACAAATAATTTTGTTTAAGAGTCACACAGGAAAGTACTAGATGAGCGAGCTGATTAAGGAGAACATGCACATGAAGCTGTACATGGAGGGCACCGTGGACAACCATCACTTCAAGTGCACATCCGAGGGCGAAGGCAAGCCCTACGAGGGCACCCAGACCATGAGAATCAAGGTGGTCGAGGGCGGCCCTCTCCCCTTCGCCTTCGACATCCTGGCTACTAGCTTCCTCTACGGCAGCAAGACCTTCATCAACCACACCCAGGGCATCCCCGACTTCTTCAAGCAGTCCTTCCCTGAGGGCTTCACATGGGAGAGAGTCACCACATACGAAGATGGGGGCGTGCTGACCGCTACCCAGGACACCAGCCTCCAGGACGGCTGCCTCATCTACAACGTCAAGATCAGAGGGGTGAACTTCACATCCAACGGCCCTGTGATGCAGAAGAAAACACTCGGCTGGGAGGCCTTCACCGAGACGCTGTACCCCGCTGACGGCGGCCTGGAAGGCAGAAACGACATGGCCCTGAAGCTCGTGGGCGGGAGCCATCTGATCGCAAACATCAAGACCACATATAGATCCAAGAAACCCGCTAAGAACCTCAAGATGCCTGGCGTCTACTATGTGGACTACAGACTGGAAAGAATCAAGGAGGCCAACAACGAGACCTACGTCGAGCAGCACGAGGTGGCAGTGGCCAGATACTGCGACCTCCCTAGCAAACTGGGGCACTAACCAGGCATCAAATAAAACGAAAGGCTCAGTCGAAAGACTGGGCCTTTCGTTTTATCTGTTGTTTGTCGGTGAACGCTCTCTACTAGAGTCACACTGGCTCACCTTCGGGTGGGCCTTTCTGCGTTTATA";
-		Sequence gfp_seq= doc.createSequence("GFP_protein_sequence", version, gfp_sequence, Sequence.IUPAC_DNA);
-		gfp_cds.addSequence(gfp_seq);
-
-		ComponentDefinition rfp_cds = createCDS(doc, "RFP");
-		createProtein(doc,"RFP",rfp_cds);
-		String rfp_sequence = "AGTGGTCGTGATCTGAAACTCGATCACCTGATGAGCTCAAGGCAGAGCGAAACCACCTCTACAAATAATTTTGTTTAATACTAGAGTCACACAGGAAAGTACTAGATGGCTTCCTCCGAAGACGTTATCAAAGAGTTCATGCGTTTCAAAGTTCGTATGGAAGGTTCCGTTAACGGTCACGAGTTCGAAATCGAAGGTGAAGGTGAAGGTCGTCCGTACGAAGGTACCCAGACCGCTAAACTGAAAGTTACCAAAGGTGGTCCGCTGCCGTTCGCTTGGGACATCCTGTCCCCGCAGTTCCAGTACGGTTCCAAAGCTTACGTTAAACACCCGGCTGACATCCCGGACTACCTGAAACTGTCCTTCCCGGAAGGTTTCAAATGGGAACGTGTTATGAACTTCGAAGACGGTGGTGTTGTTACCGTTACCCAGGACTCCTCCCTGCAAGACGGTGAGTTCATCTACAAAGTTAAACTGCGTGGTACCAACTTCCCGTCCGACGGTCCGGTTATGCAGAAAAAAACCATGGGTTGGGAAGCTTCCACCGAACGTATGTACCCGGAAGACGGTGCTCTGAAAGGTGAAATCAAAATGCGTCTGAAACTGAAAGACGGTGGTCACTACGACGCTGAAGTTAAAACCACCTACATGGCTAAAAAACCGGTTCAGCTGCCGGGTGCTTACAAAACCGACATCAAACTGGACATCACCTCCCACAACGAAGACTACACCATCGTTGAACAGTACGAACGTGCTGAAGGTCGTCACTCCACCGGTGCTTAATAACAGATAAAAAAAATCCTTAGCTTTCGCTAAGGATGATTTCT";
-		Sequence rfp_seq= doc.createSequence("RFP_protein_sequence", version, rfp_sequence, Sequence.IUPAC_DNA);
-		rfp_cds.addSequence(rfp_seq);
-		
-		ComponentDefinition bfp_cds = createCDS(doc, "BFP");
-		createProtein(doc,"BFP",bfp_cds);
-		String bfp_sequence = "AGTTCCAGTCGAGACCTGAAGTGGGTTTCCTGATGAGGCTGTGGAGAGAGCGAAAGCTTTACTCCCGCACAAGCCGAAACTGGAACCTCTACAAATAATTTTGTTTAAGAGTCACACAGGAAAGTACTAGATGAGCGAGCTGATTAAGGAGAACATGCACATGAAGCTGTACATGGAGGGCACCGTGGACAACCATCACTTCAAGTGCACATCCGAGGGCGAAGGCAAGCCCTACGAGGGCACCCAGACCATGAGAATCAAGGTGGTCGAGGGCGGCCCTCTCCCCTTCGCCTTCGACATCCTGGCTACTAGCTTCCTCTACGGCAGCAAGACCTTCATCAACCACACCCAGGGCATCCCCGACTTCTTCAAGCAGTCCTTCCCTGAGGGCTTCACATGGGAGAGAGTCACCACATACGAAGATGGGGGCGTGCTGACCGCTACCCAGGACACCAGCCTCCAGGACGGCTGCCTCATCTACAACGTCAAGATCAGAGGGGTGAACTTCACATCCAACGGCCCTGTGATGCAGAAGAAAACACTCGGCTGGGAGGCCTTCACCGAGACGCTGTACCCCGCTGACGGCGGCCTGGAAGGCAGAAACGACATGGCCCTGAAGCTCGTGGGCGGGAGCCATCTGATCGCAAACATCAAGACCACATATAGATCCAAGAAACCCGCTAAGAACCTCAAGATGCCTGGCGTCTACTATGTGGACTACAGACTGGAAAGAATCAAGGAGGCCAACAACGAGACCTACGTCGAGCAGCACGAGGTGGCAGTGGCCAGATACTGCGACCTCCCTAGCAAACTGGGGCACTAACCAGGCATCAAATAAAACGAAAGGCTCAGTCGAAAGACTGGGCCTTTCGTTTTATCTGTTGTTTGTCGGTGAACGCTCTCTACTAGAGTCACACTGGCTCACCTTCGGGTGGGCCTTTCTGCGTTTATA";
-		Sequence bfp_seq= doc.createSequence("BFP_protein_sequence", version, bfp_sequence, Sequence.IUPAC_DNA);
-		bfp_cds.addSequence(bfp_seq);
-		
-		ComponentDefinition sigmaK1FR_cds = createCDS(doc, "SigmaK1FR");
-		createProtein(doc,"SigmaK1FR",sigmaK1FR_cds);
-		String sigmaK1FR_sequence = "ATGAGCATCGCGGCGACCCTGGAGAACGATCTGGCGCGTCTGGAAAACGAAAACGCTCGTCTCGAAAAAGACATCGCGAACCTGGAACGTGACCTGGCGAAACTGGAGCGTGAAGAAGCGTACTTCGGAGGTTCAGGTGGTAAGAACACTGGTGAAATCTCTGAGAAAGTCAAGCTGGGCACTAAGGCACTGGCTGGTCAATGGCTGGCTTACGGTGTTACTCGCAGTGTGACTAAGCGTTCAGTCATGACGCTGGCTTACGGGTCCAAAGAGTTCGGCTTCCGTCAACAAGTGCTGGAAGATACCATTCAGCCAGCTATTGATTCCGGCAAGGGTCTGATGTTCACTCAGCCGAATCAGGCTGCTGGATACATGGCTAAGCTGATTTGGGAATCTGTGAGCGTGACGGTGGTAGCTGCGGTTGAAGCAATGAACTGGCTTAAGTCTGCTGCTAAGCTGCTGGCTGCTGAGGTCAAAGATAAGAAGACTGGAGAGATTCTTCGCAAGCGTTGCGCTGTGCATTGGGTAACTCCTGATGGTTTCCCTGTGTGGCAGGAATACAAGAAGCCTATTCAGACGCGCTTGAACCTGAGGTTCCTCGGTTCGTTCAACCTCCAGCCGACCGTCAACACCAACAAAGATAGCGAGATTGATGCACACAAACAGGAGTCTGGTATCGCTCCTAACTTTGTACACAGCCAAGACGGTAGCCACCTTCGTAAGACTGTAGTGTGGGCACACGAGAAGTACGGAATCGAATCTTTTGCACTGATTCACGACTCCTTCGGTACGATTCCGGCTGACGCTGCGAACCTGTTCAAAGCAGTGCGCGAAACTATGGTTGACACATATGAGTCTTGTGATGTACTGGCTGATTTCTACGACCAGTTCGCTGACCAGTTGCACGAGTCTCAATTGGACAAAATGCCAGCACTTCCGGCTAAAGGTAACTTGAACCTCCGTGACATCTTAGAGTCGGACTTCGCGTTCGCG";
-		Sequence sigmaK1FR_seq= doc.createSequence("SigmaK1FR_protein_sequence", version, sigmaK1FR_sequence, Sequence.IUPAC_DNA);
-		sigmaK1FR_cds.addSequence(sigmaK1FR_seq);
-		
-		ComponentDefinition sigmaT3_cds = createCDS(doc, "SigmaT3");
-		createProtein(doc,"SigmaT3",sigmaT3_cds);
-		String sigmaT3_sequence = "ATGAGCATCGCGGCGACCCTGGAGAACGATCTGGCGCGTCTGGAAAACGAAAACGCTCGTCTCGAAAAAGACATCGCGAACCTGGAACGTGACCTGGCGAAACTGGAGCGTGAAGAAGCGTACTTCGGAGGTTCAGGTGGTAAGAACACTGGTGAAATCTCTGAGAAAGTCAAGCTGGGCACTAAGGCACTGGCTGGTCAATGGCTGGCTTACGGTGTTACTCGCAGTGTGACTAAGCGTTCAGTCATGACGCTGGCTTACGGGTCCAAAGAGTTCGGCTTCCGTCAACAAGTGCTGGAAGATACCATTCAGCCAGCTATTGATTCCGGCAAGGGTCTGATGTTCACTCAGCCGAATCAGGCTGCTGGATACATGGCTAAGCTGATTTGGGAATCTGTGAGCGTGACGGTGGTAGCTGCGGTTGAAGCAATGAACTGGCTTAAGTCTGCTGCTAAGCTGCTGGCTGCTGAGGTCAAAGATAAGAAGACTGGAGAGATTCTTCGCAAGCGTTGCGCTGTGCATTGGGTAACTCCTGATGGTTTCCCTGTGTGGCAGGAATACAAGAAGCCTATTCAGAAGCGCCTGGACATGATTTTCTTGGGTCAATTTCGCTTGCAACCTACCATTAACACCAACAAAGATAGCGAGATTGATGCACACAAACAGGAGTCTGGTATCGCTCCTAACTTTGTACACAGCCAAGACGGTAGCCACCTTCGTAAGACTGTAGTGTGGGCACACGAGAAGTACGGAATCGAATCTTTTGCACTGATTCACGACTCCTTCGGTACGATTCCGGCTGACGCTGCGAACCTGTTCAAAGCAGTGCGCGAAACTATGGTTGACACATATGAGTCTTGTGATGTACTGGCTGATTTCTACGACCAGTTCGCTGACCAGTTGCACGAGTCTCAATTGGACAAAATGCCAGCACTTCCGGCTAAAGGTAACTTGAACCTCCGTGACATCTTAGAGTCGGACTTCGCGTTCGCG";
-		Sequence sigmaT3_seq= doc.createSequence("SigmaT3_protein_sequence", version, sigmaT3_sequence, Sequence.IUPAC_DNA);
-		sigmaT3_cds.addSequence(sigmaT3_seq);
-		
-		ComponentDefinition sigmaT7_cds = createCDS(doc, "SigmaT7");
-		createProtein(doc,"SigmaT7",sigmaT7_cds);
-		String sigmaT7_sequence = "ATGAGCATCGCGGCGACCCTGGAGAACGATCTGGCGCGTCTGGAAAACGAAAACGCTCGTCTCGAAAAAGACATCGCGAACCTGGAACGTGACCTGGCGAAACTGGAGCGTGAAGAAGCGTACTTCGGAGGTTCAGGTGGTAAGAACACTGGTGAAATCTCTGAGAAAGTCAAGCTGGGCACTAAGGCACTGGCTGGTCAATGGCTGGCTTACGGTGTTACTCGCAGTGTGACTAAGAGTTCAGTCATGACGCTGGCTTACGGGTCCAAAGAGTTCGGCTTCCGTCAACAAGTGCTGGAAGATACCATTCAGCCAGCTATTGATTCCGGCAAGGGTCTGATGTTCACTCAGCCGAATCAGGCTGCTGGATACATGGCTAAGCTGATTTGGGAATCTGTGAGCGTGACGGTGGTAGCTGCGGTTGAAGCAATGAACTGGCTTAAGTCTGCTGCTAAGCTGCTGGCTGCTGAGGTCAAAGATAAGAAGACTGGAGAGATTCTTCGCAAGCGTTGCGCTGTGCATTGGGTAACTCCTGATGGTTTCCCTGTGTGGCAGGAATACAAGAAGCCTATTCAGACGCGCTTGAACCTGATGTTCCTCGGTCAGTTCCGCTTACAGCCTACCATTAACACCAACAAAGATAGCGAGATTGATGCACACAAACAGGAGTCTGGTATCGCTCCTAACTTTGTACACAGCCAAGACGGTAGCCACCTTCGTAAGACTGTAGTGTGGGCACACGAGAAGTACGGAATCGAATCTTTTGCACTGATTCACGACTCCTTCGGTACGATTCCGGCTGACGCTGCGAACCTGTTCAAAGCAGTGCGCGAAACTATGGTTGACACATATGAGTCTTGTGATGTACTGGCTGATTTCTACGACCAGTTCGCTGACCAGTTGCACGAGTCTCAATTGGACAAAATGCCAGCACTTCCGGCTAAAGGTAACTTGAACCTCCGTGACATCTTAGAGTCGGACTTCGCGTTCGCG";
-		Sequence sigmaT7_seq= doc.createSequence("SigmaT7_protein_sequence", version, sigmaT7_sequence, Sequence.IUPAC_DNA);
-		sigmaT7_cds.addSequence(sigmaT7_seq);
-
-		ComponentDefinition sigmaCGG_cds = createCDS(doc, "SigmaCGG");
-		createProtein(doc,"SigmaCGG",sigmaT7_cds);
-		String sigmaCGG_sequence = "ATGAGCATCGCGGCGACCCTGGAGAACGATCTGGCGCGTCTGGAAAACGAAAACGCTCGTCTCGAAAAAGACATCGCGAACCTGGAACGTGACCTGGCGAAACTGGAGCGTGAAGAAGCGTACTTCGGAGGTTCAGGTGGTAAGAACACTGGTGAAATCTCTGAGAAAGTCAAGCTGGGCACTAAGGCACTGGCTGGTCAATGGCTGGCTTACGGTGTTACTCGCAGTGTGACTAAGCGTTCAGTCATGACGCTGGCTTACGGGTCCAAAGAGTTCGGCTTCCGTCAACAAGTGCTGGAAGATACCATTCAGCCAGCTATTGATTCCGGCAAGGGTCTGATGTTCACTCAGCCGAATCAGGCTGCTGGATACATGGCTAAGCTGATTTGGGAATCTGTGAGCGTGACGGTGGTAGCTGCGGTTGAAGCAATGAACTGGCTTAAGTCTGCTGCTAAGCTGCTGGCTGCTGAGGTCAAAGATAAGAAGACTGGAGAGATTCTTCGCAAGCGTTGCGCTGTGCATTGGGTAACTCCTGATGGTTTCCCTGTGTGGCAGGAATACAAGAAGCCTATTAAAACGCGCGTGCATATTATGTTCCTCGGTCAGTTCGAAATGCAGCCTACCATTAACACCAACAAAGATAGCGAGATTGATGCACGCAAACAGGAGTCTGGTATCGCTCCTAACTTTGTACACAGCCAAGACGGTAGCCACCTTCGTAAGACTGTAGTGTGGGCACACGAGAAGTACGGAATCGAATCTTTTGCACTGATTCACGACTCCTTCGGTACGATTCCGGCTGACGCTGCGAACCTGTTCAAAGCAGTGCGCGAAACTATGGTTGACACATATGAGTCTTGTGATGTACTGGCTGATTTCTACGACCAGTTCGCTGACCAGTTGCACGAGTCTCAATTGGACAAAATGCCAGCACTTCCGGCTAAAGGTAACTTGAACCTCCGTGACATCTTAGAGTCGGACTTCGCGTTCGCG";
-		Sequence sigmaCGG_seq= doc.createSequence("SigmaCGG_protein_sequence", version, sigmaCGG_sequence, Sequence.IUPAC_DNA);
-		sigmaCGG_cds.addSequence(sigmaCGG_seq);
-		*/
-	}
-	
-	private static ComponentDefinition createCDS(SBOLDocument doc, String display) throws SBOLValidationException
-	{
-		return createComponentDefinition(doc, display, ComponentDefinition.DNA_REGION, SequenceOntology.CDS);
-	}
-	
-	private static ComponentDefinition createPromoter(SBOLDocument doc, String display) throws SBOLValidationException
-	{
-		return createComponentDefinition(doc, display, ComponentDefinition.DNA_REGION, SequenceOntology.PROMOTER);
-	}
-	
-	private static ComponentDefinition createComponentDefinition(SBOLDocument doc, String display, URI type, URI role) throws SBOLValidationException
-	{
-		ComponentDefinition cds = doc.createComponentDefinition(display, version, type);
-		cds.setName(display);
-		cds.addWasGeneratedBy(activityURI);
-		cds.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
-		
-		if(role == null)
-		{
-			//cds.addRole(SequenceOntology.CDS);
-		}
-		else
-		{
-			cds.addRole(role);
-		}
-		return cds;
-	}
-		
 	private static URI getRole(String type) {
 		if (type.equals("ribozyme")) {
 	        return URI.create(so + "SO:0001977");
-	    }
-	    else if (type.equals("scar")) {
+	    } else if (type.equals("scar")) {
 	        return URI.create(so + "SO:0001953");
-	    }
-	    else if (type.equals("cds")) {
+	    } else if (type.equals("cds")) {
 	        return URI.create(so + "SO:0000316");
-	    }
-	    else if (type.equals("promoter")) {
+	    } else if (type.equals("promoter")) {
 	        return URI.create(so + "SO:0000167");
-	    }
-	    else if (type.equals("rbs")) {
+	    } else if (type.equals("rbs")) {
 	        return URI.create(so + "SO:0000139");
-	    }
-	    else if (type.equals("terminator")) {
+	    } else if (type.equals("cassette")) {
+	    	return URI.create(so + "SO:0005853");
+	    } else if (type.equals("terminator")) {
 	        return URI.create(so + "SO:0000141");
 	    } else if (type.equals("grna")) {
 	        return URI.create(so + "SO:0001264");
@@ -381,19 +90,16 @@ public class Cello2SBOL {
 	        return URI.create(so + "SO:0000057");
 	    } else if (type.equals("backbone")) {
 	        return URI.create(so + "SO:0000755");
-	    } else if (type.equals("spacer")) {
-	    	return URI.create(so + "SO:0002223");
 	    } else {
 	        System.err.println("Part Type " + type + " not found");
 	        return null;
 	    }
 	}
 
-	private static void convertPartsToSBOL(SBOLDocument document,HashMap<String,JSONObject> partsMap) throws SBOLValidationException {
+	private static void convertPartsToSBOL(SBOLDocument document,HashMap<String,JSONObject> partsMap) throws SBOLValidationException, IOException {
+
 		for (JSONObject part : partsMap.values()) {
 			String name = (String)part.get("name");
-			name = name.replace("-", "_");
-			System.out.println(name);
 			String dnasequence = (String)part.get("dnasequence");
 			Sequence sequence = document.createSequence(name + "_sequence", version, dnasequence, Sequence.IUPAC_DNA);
 			sequence.setName(name+"_sequence");
@@ -489,7 +195,7 @@ public class Cello2SBOL {
 	}
 	
 	private static void createInhibition(SBOLDocument document,String inhibitor,String inhibited,
-			Double ymin,Double ymax,Double alpha,Double beta) throws SBOLValidationException 
+			Double ymin,Double ymax,Double alpha,Double beta,Double tau_on,Double tau_off) throws SBOLValidationException 
 	{
 		ModuleDefinition moduleDefinition = 
 				document.createModuleDefinition(inhibitor+"_"+inhibited+"_repression", version);
@@ -517,10 +223,16 @@ public class Cello2SBOL {
 		if (beta != null) {
 			interaction.createAnnotation(new QName(celloNS,"beta","cello"),beta); 
 		}
+		if (tau_on != null) {
+			interaction.createAnnotation(new QName(celloNS,"tau_on","cello"),beta); 
+		}
+		if (tau_off != null) {
+			interaction.createAnnotation(new QName(celloNS,"tau_off","cello"),beta); 
+		}
 	}
 	
 	private static void createActivation(SBOLDocument document,String activator,String promoter,
-			Double ymin,Double ymax,Double alpha,Double beta) throws SBOLValidationException 
+			Double ymin,Double ymax,Double alpha,Double beta,Double tau_on,Double tau_off) throws SBOLValidationException 
 	{
 		ModuleDefinition moduleDefinition = 
 				document.createModuleDefinition(activator+"_"+promoter+"_activation", version);
@@ -547,6 +259,12 @@ public class Cello2SBOL {
 		}
 		if (beta != null) {
 			interaction.createAnnotation(new QName(celloNS,"beta","cello"),beta); 
+		}
+		if (tau_on != null) {
+			interaction.createAnnotation(new QName(celloNS,"tau_on","cello"),tau_on); 
+		}
+		if (tau_off != null) {
+			interaction.createAnnotation(new QName(celloNS,"tau_off","cello"),tau_off); 
 		}
 	}
 	
@@ -588,9 +306,21 @@ public class Cello2SBOL {
 	}
 
 	private static void convertGatePartsToSBOL(SBOLDocument document,HashSet<JSONObject> gate_partsArr,
-			HashMap<String,JSONObject> gatesMap,HashMap<String,JSONObject> responseMap) throws SBOLValidationException {
+			HashMap<String,JSONObject> gatesMap,HashMap<String,JSONObject> responseMap, HashMap<String,JSONObject> functionMap) throws SBOLValidationException {
 		for (JSONObject gate : gate_partsArr) {
+			boolean v2 = (functionMap != null);
 			String gate_name = (String)gate.get("gate_name");
+			String respfxn = null;
+			
+			if(v2) {
+				gate_name = (String)gate.get("name");
+				gate_name = gate_name.substring(0, gate_name.length()-10);
+				respfxn = (String) ((functionMap.get((String)(((JSONObject)responseMap.get(gate_name).get("functions")).get("response_function")))).get("equation"));
+			}
+			
+			else {
+				respfxn = (String)responseMap.get(gate_name).get("equation");
+			}
 			ComponentDefinition componentDefinition = 
 					document.createComponentDefinition(gate_name, version, ComponentDefinition.DNA_REGION);
 			componentDefinition.setName(gate_name);
@@ -604,29 +334,31 @@ public class Cello2SBOL {
 	        componentDefinition.createAnnotation(new QName(celloNS,"gate_type","cello"), 
 	        		(String)gatesMap.get(gate_name).get("gate_type"));
 	        componentDefinition.createAnnotation(new QName(celloNS,"group_name","cello"), 
-	        		(String)gatesMap.get(gate_name).get("group_name"));
+	        		(String)gatesMap.get(gate_name).get(v2 ? "group" : "group_name"));
 	        componentDefinition.createAnnotation(new QName(celloNS,"color_hexcode","cello"), 
-	        		(String)gatesMap.get(gate_name).get("color_hexcode"));
+	        		(String)gatesMap.get(gate_name).get(v2 ? "color" : "color_hexcode"));
 	        componentDefinition.createAnnotation(new QName(celloNS,"response_function","cello"), 
-	        		(String)responseMap.get(gate_name).get("equation"));
-	        componentDefinition.createAnnotation(new QName(celloNS,"tandem_efficiency_factor","cello"), 
-	        		(String)responseMap.get(gate_name).get("tandem_efficiency_factor"));
+	        		respfxn);
+	        if (responseMap.get(gate_name).get("tandem_efficiency_factor") != null) {
+	        	componentDefinition.createAnnotation(new QName(celloNS,"tandem_efficiency_factor","cello"), 
+		        		(String)responseMap.get(gate_name).get("tandem_efficiency_factor"));
+	        }
+	        
 	        JSONArray parameters = (JSONArray)responseMap.get(gate_name).get("parameters");
 	        for (Object obj : parameters) {
 	        	String name = (String)((JSONObject)obj).get("name");
 	        	componentDefinition.createAnnotation(new QName(celloNS,name,"cello"), 
 	        			(Double)((JSONObject)obj).get("value"));
 	        }
-	        JSONArray variables = (JSONArray)responseMap.get(gate_name).get("variables");
-	        for (Object obj : variables) {
-	        	String name = (String)((JSONObject)obj).get("name");
-	        	componentDefinition.createAnnotation(new QName(celloNS,name+"_off_threshold","cello"), 
-	        			(Double)((JSONObject)obj).get("off_threshold"));
-	        	componentDefinition.createAnnotation(new QName(celloNS,name+"_on_threshold","cello"), 
-	        			(Double)((JSONObject)obj).get("on_threshold"));
-	        }
-			
-			JSONArray expression_cassettes = (JSONArray) gate.get("expression_cassettes");
+//	        JSONArray variables = (JSONArray)responseMap.get(gate_name).get("variables");
+//	        for (Object obj : variables) {
+//	        	String name = (String)((JSONObject)obj).get("name");
+//	        	componentDefinition.createAnnotation(new QName(celloNS,name+"_off_threshold","cello"), 
+//	        			(Double)((JSONObject)obj).get("off_threshold"));
+//	        	componentDefinition.createAnnotation(new QName(celloNS,name+"_on_threshold","cello"), 
+//	        			(Double)((JSONObject)obj).get("on_threshold"));
+//	        }
+	        JSONArray expression_cassettes = v2 ? (JSONArray) gate.get("devices") : (JSONArray) gate.get("expression_cassettes");
 			String seq = "";
 			for (Object obj : expression_cassettes) {
 				int annotationCount = 0;
@@ -636,7 +368,11 @@ public class Cello2SBOL {
 //		        Component currentComponent = null;
 		        
 				JSONObject expression_cassette = (JSONObject) obj;
-				JSONArray cassette_parts = (JSONArray)expression_cassette.get("cassette_parts");
+				JSONArray cassette_parts = v2 ? (JSONArray)expression_cassette.get("components") : (JSONArray)expression_cassette.get("cassette_parts");
+				
+				if (((String)cassette_parts.get(0)).startsWith("#in") && ((String)cassette_parts.get(1)).startsWith("#in")) {
+					continue;
+				}
 				for (Object obj2 : cassette_parts) {
 					String partId = (String)obj2;
 					ComponentDefinition partComponentDefinition = document.getComponentDefinition(partId, version);
@@ -657,16 +393,16 @@ public class Cello2SBOL {
 					annotationCount++;
 					
 					if (partComponentDefinition.getRoles().contains(SequenceOntology.CDS)) {
-						String promoter = (String)gate.get("promoter");
+						String promoter = v2 ? (String)((JSONArray)gate.get("outputs")).get(0) : (String)gate.get("promoter");
 						if (document.getModuleDefinition(partId+"_protein_"+promoter+"_repression", version)==null) {
-							createInhibition(document,partId+"_protein",promoter,null,null,null,null);
+							createInhibition(document,partId+"_protein",promoter,null,null,null,null,null,null);
 						}
 					}
 					if (partComponentDefinition.getRoles().contains(URI.create(so + "SO:0001264"))) {
-						String promoter = (String)gate.get("promoter");
+						String promoter = v2 ? (String)((JSONArray)gate.get("outputs")).get(0) : (String)gate.get("promoter");
 						createComplex(document,partId+"_rna","dCAS9_Mxi1_protein");
 						if (document.getModuleDefinition(partId+"_rna_dCAS9_Mxi1_protein_"+promoter+"_repression", version)==null) {
-							createInhibition(document,partId+"_rna_dCAS9_Mxi1_protein",promoter,null,null,null,null);
+							createInhibition(document,partId+"_rna_dCAS9_Mxi1_protein",promoter,null,null,null,null,null,null);
 						}
 					}
 				}
@@ -682,9 +418,16 @@ public class Cello2SBOL {
 		}
 	}
 
-	private static void convertInputSensorsToSBOL(SBOLDocument document,HashSet<JSONObject> input_sensorsArr) throws SBOLValidationException {
+	private static void convertInputSensorsToSBOL(SBOLDocument document,HashSet<JSONObject> input_sensorsArr,HashMap<String,JSONObject> responseMap) throws SBOLValidationException {
 		for (JSONObject sensor : input_sensorsArr) {
 			String sensor_name = (String)sensor.get("name");
+			boolean v2 = (responseMap != null);
+			
+			if(v2) {
+				sensor_name = sensor_name.substring(0, sensor_name.length()-10);
+			}
+			
+			
 			ComponentDefinition componentDefinition = 
 					document.createComponentDefinition(sensor_name, version, ComponentDefinition.DNA_REGION);
 			componentDefinition.setName(sensor_name);
@@ -692,8 +435,17 @@ public class Cello2SBOL {
 			componentDefinition.addWasGeneratedBy(activityURI);
 			componentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 	        componentDefinition.createAnnotation(new QName(celloNS,"gateType","cello"), "input_sensor");
-					        
-			JSONArray parts = (JSONArray)sensor.get("parts");
+	        JSONArray parameters = (JSONArray)responseMap.get(sensor_name).get("parameters");
+	        if (parameters != null) {
+	        	for (Object obj : parameters) {
+		        	String name = (String)((JSONObject)obj).get("name");
+		        	componentDefinition.createAnnotation(new QName(celloNS,name,"cello"), 
+		        			(Double)((JSONObject)obj).get("value"));
+		        }
+	        }
+			JSONArray parts = (JSONArray)sensor.get(v2 ? "outputs" : "parts");
+			JSONObject oldsensor = sensor;
+			sensor = (v2 ? responseMap.get(sensor_name) : sensor);
 			String seq = "";
 			int annotationCount = 0;
 			int start = 1;
@@ -723,32 +475,37 @@ public class Cello2SBOL {
 					Double signal_high = (Double)sensor.get("signal_high");
 					Double alpha = null;
 					Double beta = null;
-			        JSONArray parameters = (JSONArray)sensor.get("parameters");
-			        for (Object obj : parameters) {
-			        	String name = (String)((JSONObject)obj).get("name");
-			        	if (name.equals("signal_low")) {
-			        		signal_low = (Double)((JSONObject)obj).get("value");
-			        	} else if (name.equals("signal_high")) {
-			        		signal_high = (Double)((JSONObject)obj).get("value");
-			        	} else if (name.equals("alpha")) {
-			        		alpha = (Double)((JSONObject)obj).get("value");
-			        	} else if (name.equals("beta")) {
-			        		beta = (Double)((JSONObject)obj).get("value");
-			        	} 
+					Double tau_on = null;
+					Double tau_off = null;
+
+			        if (parameters != null) {
+			        	for (Object obj : parameters) {
+				        	String name = (String)((JSONObject)obj).get("name");
+				        	if (name.equals("signal_low")) {
+				        		signal_low = (Double)((JSONObject)obj).get("value");
+				        	} else if (name.equals("signal_high")) {
+				        		signal_high = (Double)((JSONObject)obj).get("value");
+				        	} else if (name.equals("alpha")) {
+				        		alpha = (Double)((JSONObject)obj).get("value");
+				        	} else if (name.equals("beta")) {
+				        		beta = (Double)((JSONObject)obj).get("value");
+				        	} 
+				        }
 			        }
+			        
 
 
 					document.createComponentDefinition(input_molecule, version, ComponentDefinition.SMALL_MOLECULE);
 					createComplex(document,input_molecule,partId+"_protein");
 					if (((String)sensor.get("type")).equals("complex_stimulator")) {
-						createActivation(document,input_molecule+"_"+partId+"_protein",promoter,signal_low,signal_high,alpha,beta);
+						createActivation(document,input_molecule+"_"+partId+"_protein",promoter,signal_low,signal_high,alpha,beta,tau_on,tau_off);
 					} else if (((String)sensor.get("type")).equals("sequester_inhibitor")) {
-						createInhibition(document,partId+"_protein",promoter,signal_low,signal_high,alpha,beta);
+						createInhibition(document,partId+"_protein",promoter,signal_low,signal_high,alpha,beta,tau_on,tau_off);
 					}
 				}
 				
 			}
-			
+			sensor = oldsensor;
 			Sequence sequence = document.createSequence(sensor_name+"_sequence", version, seq, Sequence.IUPAC_DNA);
 			sequence.setName(sensor_name+"_sequence");
 			sequence.addWasGeneratedBy(activityURI);
@@ -758,9 +515,15 @@ public class Cello2SBOL {
 		}
 	}
 
-	private static void convertOutputReportersToSBOL(SBOLDocument document,HashSet<JSONObject> output_reportersArr) throws SBOLValidationException {
+	private static void convertOutputReportersToSBOL(SBOLDocument document,HashSet<JSONObject> output_reportersArr,HashMap<String,JSONObject> responseMap) throws SBOLValidationException {
 		for (JSONObject sensor : output_reportersArr) {
 			String reporter_name = (String)sensor.get("name");
+			boolean v2 = (responseMap != null);
+			
+			if(v2) {
+				reporter_name = reporter_name.substring(0, reporter_name.length()-10);
+			}
+			
 			ComponentDefinition componentDefinition = 
 					document.createComponentDefinition(reporter_name, version, ComponentDefinition.DNA_REGION);
 			componentDefinition.setName(reporter_name);
@@ -769,11 +532,15 @@ public class Cello2SBOL {
 			componentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 	        componentDefinition.createAnnotation(new QName(celloNS,"gateType","cello"), "output_reporter");
 					        
-			JSONArray parts = (JSONArray)sensor.get("parts");
+			JSONArray parts = v2 ? (JSONArray) (((JSONObject) ((JSONArray)sensor.get("devices")).get(0)).get("components")): (JSONArray)sensor.get("parts");
+			
 			String seq = "";
 			int annotationCount = 0;
 			int start = 1;
 			for (Object obj2 : parts) {
+				if (((String)obj2).startsWith("#in")) {
+					continue;
+				}
 				String partId = (String)obj2;
 				document.getComponentDefinition(partId, version);
 				String cass_seq = document.getSequence(partId+"_sequence",version).getElements();
@@ -803,18 +570,44 @@ public class Cello2SBOL {
 		}
 	}
 	
+	public static boolean isV2(JSONArray a) {
+		boolean models = false;
+		boolean structures = false;
+		for (Object o : a)
+		{
+			JSONObject ucf = (JSONObject) o;
+			
+			String collection = (String) ucf.get("collection");
+			if(collection.equals("models")) {
+				models = true;
+			}
+			else if(collection.equals("structures")) {
+				structures = true;
+			}
+			
+			if(models && structures) {
+				return true;
+			}
+			
+
+		}
+		return false;
+	}
+	
 	// args[0] - login email
 	// args[1] - password
 	// args[2] - login user
 	// args[3] - temporary directory
 	// args[4] - databasePrefix
 	// args[5] - path to UCF file
-	// args[6] - databaseURL
-	// args[7] - collection id
-	// args[8] - collection version
-	// args[9] - collection name
-	// args[10] - collection description
-	// args[11] - collection pubMedId
+	// args[6] - path to input file
+	// args[7] - path to output file
+	// args[8] - databaseURL
+	// args[9] - collection id
+	// args[10] - collection version
+	// args[11] - collection name
+	// args[12] - collection description
+	// args[13] - collection pubMedId
 	public static void main( String[] args ) throws SBOLValidationException, SBOLConversionException, SynBioHubException, FileNotFoundException, IOException, ParseException, URISyntaxException
     {
 		if (args.length < 6) {
@@ -840,29 +633,37 @@ public class Cello2SBOL {
 		String tmpDir = args[3];
 		String databasePrefix = args[4];
 		String pathToUCFFile = args[5];
+		String pathToInputFile = null;
+		String pathToOutputFile = null;				
 		String databaseURL = databasePrefix;
-		String collectionId = "Cello_Parts";
+		String collectionId = "Eco1C1G1T1_Parts";
 		String collectionVersion = "1";
 		String collectionName = "Cello Parts";
 		String collectionDescription = "These are the Cello parts";
 		String collectionPubMedId = "27034378";
 		if (args.length > 6) {
-			databaseURL = args[6];
+			pathToInputFile = args[6];
 		}
 		if (args.length > 7) {
-			collectionId = args[7];
+			pathToOutputFile = args[7];
 		}
 		if (args.length > 8) {
-			collectionVersion = args[8];
+			databaseURL = args[8];
 		}
 		if (args.length > 9) {
-			collectionName = args[9];
+			collectionId = args[9];
 		}
 		if (args.length > 10) {
-			collectionDescription = args[10];
+			collectionVersion = args[10];
 		}
 		if (args.length > 11) {
-			collectionPubMedId = args[11];
+			collectionName = args[11];
+		}
+		if (args.length > 12) {
+			collectionDescription = args[12];
+		}
+		if (args.length > 13) {
+			collectionPubMedId = args[13];
 		}
 		
 		SBOLDocument document = new SBOLDocument(); 
@@ -904,35 +705,105 @@ public class Cello2SBOL {
 		HashSet<JSONObject> output_reportersArr = new HashSet<JSONObject>();
 		HashMap<String,JSONObject> gatesMap = new HashMap<String,JSONObject>();
 		HashMap<String,JSONObject> responseMap = new HashMap<String,JSONObject>();
+		HashMap<String,JSONObject> functionMap = new HashMap<String,JSONObject>();
 
 		JSONParser parser = new JSONParser();
 		JSONArray a = (JSONArray) parser.parse(new FileReader(pathToUCFFile));
+		JSONArray in = null;
+		JSONArray out = null;
+		boolean v2 = isV2(a);
+		if (v2) {
+			in = (JSONArray) parser.parse(new FileReader(pathToInputFile));
+			out = (JSONArray) parser.parse(new FileReader(pathToOutputFile));
+			for (Object o : in) {
+				JSONObject ucf = (JSONObject) o;
+				String collection = (String) ucf.get("collection");
+				if (collection.equals("parts")) {
+					partsMap.put((String)ucf.get("name"),ucf);
+				} else if (collection.equals("functions")) {
+					functionMap.put((String)ucf.get("name"),ucf);
+				} else if (collection.equals("structures")) {
+					input_sensorsArr.add(ucf);
+				} else if (collection.equals("models")) {
+					String name = (String)ucf.get("name");
+					responseMap.put(name.substring(0, name.length()-6),ucf);
+				}
+			}
+			for (Object o : out)
+			{
+				JSONObject ucf = (JSONObject) o;
 
-		for (Object o : a)
-		{
-			JSONObject ucf = (JSONObject) o;
+				String collection = (String) ucf.get("collection");
+				if (collection.equals("functions")) {
+					functionMap.put((String)ucf.get("name"),ucf);
+				} else if (collection.equals("parts")) {
+					partsMap.put((String)ucf.get("name"),ucf);
+				} else if (collection.equals("structures")) {
+					output_reportersArr.add(ucf);
+				} else if (collection.equals("models")) {
+					String name = (String)ucf.get("name");
+					responseMap.put(name.substring(0, name.length()-6),ucf);
+				}
+			}
 
-			String collection = (String) ucf.get("collection");
+			for (Object o : a)
+			{
+				JSONObject ucf = (JSONObject) o;
 
-			if (collection.equals("parts")) {
-				partsMap.put((String)ucf.get("name"),ucf);
+				String collection = (String) ucf.get("collection");
+				if (collection.equals("functions")) {
+					functionMap.put((String)ucf.get("name"),ucf);
+				}
 			}
-			else if (collection.equals("gate_parts")) {
-				gate_partsArr.add(ucf);
-			}
-			else if (collection.equals("input_sensors")) {
-				input_sensorsArr.add(ucf);
-			}
-			else if (collection.equals("output_reporters")) {
-				output_reportersArr.add(ucf);
-			}
-			else if (collection.equals("gates")) {
-				gatesMap.put((String)ucf.get("gate_name"),ucf);
-			}
-			else if (collection.equals("response_functions")) {
-				responseMap.put((String)ucf.get("gate_name"),ucf);
+			for (Object o : a)
+			{
+				JSONObject ucf = (JSONObject) o;
+
+				String collection = (String) ucf.get("collection");
+
+				if (collection.equals("parts")) {
+					partsMap.put((String)ucf.get("name"),ucf);
+				}
+				else if (collection.equals("structures")) {
+					gate_partsArr.add(ucf);
+				}
+				else if (collection.equals("gates")) {
+					gatesMap.put((String)ucf.get("name"),ucf);
+				}
+				else if (collection.equals("models")) {
+					String name = (String)ucf.get("name");
+					responseMap.put(name.substring(0, name.length()-6),ucf);
+				}
 			}
 		}
+		else {
+			for (Object o : a)
+			{
+				JSONObject ucf = (JSONObject) o;
+
+				String collection = (String) ucf.get("collection");
+
+				if (collection.equals("parts")) {
+					partsMap.put((String)ucf.get("name"),ucf);
+				}
+				else if (collection.equals("gate_parts")) {
+					gate_partsArr.add(ucf);
+				}
+				else if (collection.equals("input_sensors")) {
+					input_sensorsArr.add(ucf);
+				}
+				else if (collection.equals("output_reporters")) {
+					output_reportersArr.add(ucf);
+				}
+				else if (collection.equals("gates")) {
+					gatesMap.put((String)ucf.get("gate_name"),ucf);
+				}
+				else if (collection.equals("response_functions")) {
+					responseMap.put((String)ucf.get("gate_name"),ucf);
+				}
+			}
+		}
+		
         
 //		// dCAS9
 //        ComponentDefinition dCas9 = createCDS(document,"dCAS9_Mxi1");
@@ -946,9 +817,17 @@ public class Cello2SBOL {
 //		yegfp_cds.addSequence(yegfp_seq);
 
 		convertPartsToSBOL(document,partsMap);
-        convertGatePartsToSBOL(document,gate_partsArr,gatesMap,responseMap);
-        convertInputSensorsToSBOL(document,input_sensorsArr);
-        convertOutputReportersToSBOL(document,output_reportersArr);
+		if (v2) {
+	        convertGatePartsToSBOL(document,gate_partsArr,gatesMap,responseMap,functionMap);
+	        convertInputSensorsToSBOL(document,input_sensorsArr,responseMap);
+	        convertOutputReportersToSBOL(document,output_reportersArr,responseMap);
+		}
+		else {
+	        convertGatePartsToSBOL(document,gate_partsArr,gatesMap,responseMap,null);
+	        convertInputSensorsToSBOL(document,input_sensorsArr,null);
+	        convertOutputReportersToSBOL(document,output_reportersArr,null);
+		}
+
         
         //createSensorsReporters(document);
         
@@ -961,26 +840,39 @@ public class Cello2SBOL {
         
         // Validate
         SBOLValidate.validateSBOL(document,true,true,true);
+//        document.write(collectionId + ".SBOL");
+        int i = 0;
         if (SBOLValidate.getNumErrors()>0) {
         	for (String error : SBOLValidate.getErrors()) {
         		System.out.println(error);
         	}
         } else {   
         	// Upload to SynBioHub
-        	System.out.println("Uploading to SynBioHub " + databaseURL);
-        	System.out.println("Database Prefix: " + databasePrefix + " Login " + loginUser + " CollectionId " + collectionId + " Version " + collectionVersion);
         	SynBioHubFrontend sbh = new SynBioHubFrontend(databaseURL,databasePrefix);
         	sbh.login(loginEmail, password);
         	sbh.createCollection(collectionId, collectionVersion, collectionName, collectionDescription,
         			collectionPubMedId, true);
         	sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion), pathToUCFFile);
+        	if (v2) {
+        		sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion), pathToInputFile);
+            	sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion), pathToOutputFile);
+
+        	}
         	SBOLDocument doc = sbh.getSBOL(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion));
         	for (Attachment attachment : doc.getAttachments()) {
-        		activity.createUsage("UCF_file", attachment.getIdentity());
-        		break;
+        		switch(i) {
+        		case 0: activity.createUsage("UCF_file", attachment.getIdentity());
+        		i += 1;
+        		
+        		case 1: activity.createUsage("input_file", attachment.getIdentity());
+        		i += 1;
+        		
+        		case 2: activity.createUsage("output_file", attachment.getIdentity());
+        		i += 1;
+        		}
+        		
+        		
         	}
-        	document.write("/Users/myers/"+collectionId + ".xml");
-        	System.out.println(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion);
         	sbh.addToCollection(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion), false, document);
         	JSONArray motif_library = new JSONArray();
     		for (Object o : a)
@@ -988,10 +880,10 @@ public class Cello2SBOL {
     			JSONObject ucf = (JSONObject) o;
 
     			String collection = (String) ucf.get("collection");
-
     			if (collection.equals("gate_toxicity")) {
+
     				String gateName = (String)ucf.get("gate_name");
-    				File file = new File(args[3] + gateName+"_gate_toxicity.json");
+    				File file = new File(tmpDir + gateName+"_gate_toxicity.json");
     				FileOutputStream stream = new FileOutputStream(file);
     				BufferedOutputStream buffer = new BufferedOutputStream(stream);
     				stream.write(ucf.toJSONString().getBytes());
@@ -999,6 +891,24 @@ public class Cello2SBOL {
     				buffer.close();
     				sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + gateName + "/" + collectionVersion), 
     						tmpDir + gateName+"_gate_toxicity.json");
+    			} else if (collection.equals("circuit_rules")) {
+    				File file = new File(args[3] + "circuit_rules.json");
+    				FileOutputStream stream = new FileOutputStream(file);
+    				BufferedOutputStream buffer = new BufferedOutputStream(stream);
+    				stream.write(ucf.toJSONString().getBytes());
+    				stream.close();
+    				buffer.close();
+    				sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion), 
+    						tmpDir + "circuit_rules.json");
+    			} else if (collection.equals("device_rules")) {
+    				File file = new File(args[3] + "device_rules.json");
+    				FileOutputStream stream = new FileOutputStream(file);
+    				BufferedOutputStream buffer = new BufferedOutputStream(stream);
+    				stream.write(ucf.toJSONString().getBytes());
+    				stream.close();
+    				buffer.close();
+    				sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion), 
+    						tmpDir + "device_rules.json");
     			} else if (collection.equals("gate_cytometry")) {
     				String gateName = (String)ucf.get("gate_name");
     				File file = new File(args[3] + gateName+"_gate_cytometry.json");
@@ -1079,7 +989,10 @@ public class Cello2SBOL {
     			} else if (collection.equals("input_sensors")) {
     			} else if (collection.equals("output_reporters")) {
     			} else if (collection.equals("parts")) {
+    			} else if (collection.equals("functions")) {
     			} else if (collection.equals("response_functions")) {
+    			} else if (collection.equals("models")) {
+    			} else if (collection.equals("structures")) {
     			} else {
         			System.out.println(collection);
     			}
