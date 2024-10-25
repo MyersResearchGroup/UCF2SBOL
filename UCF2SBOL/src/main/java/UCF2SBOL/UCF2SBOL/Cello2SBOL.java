@@ -659,6 +659,8 @@ public class Cello2SBOL {
 			System.err.println(" temporary directory");
 			System.err.println(" database prefix");
 			System.err.println(" path to UCF file");
+			System.err.println(" path to UCF input file");
+			System.err.println(" path to UCF outpuf file");
 			System.err.println(" database URL");
 			System.err.println(" collection id");
 			System.err.println(" collection version");
