@@ -89,6 +89,8 @@ public class Cello2SBOL {
 	        return URI.create(so + "SO:0000057");
 	    } else if (type.equals("backbone")) {
 	        return URI.create(so + "SO:0000755");
+	    } else if (type.equals("spacer")) {
+	    	return URI.create(so + "SO:0002223");
 	    } else {
 	        System.err.println("Part Type " + type + " not found");
 	        return null;
@@ -374,7 +376,7 @@ public class Cello2SBOL {
 				JSONObject expression_cassette = (JSONObject) obj;
 				JSONArray cassette_parts = v2 ? (JSONArray)expression_cassette.get("components") : (JSONArray)expression_cassette.get("cassette_parts");
 				
-				if (((String)cassette_parts.get(0)).startsWith("#in") && ((String)cassette_parts.get(1)).startsWith("#in")) {
+				if (((String)cassette_parts.get(0)).startsWith("#in")) { // && ((String)cassette_parts.get(1)).startsWith("#in")) {
 					continue;
 				}
 				for (Object obj2 : cassette_parts) {
@@ -410,6 +412,7 @@ public class Cello2SBOL {
 						}
 					}
 				}
+				break;
 				
 			}
 			
