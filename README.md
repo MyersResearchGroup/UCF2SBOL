@@ -38,7 +38,7 @@ Download from here: https://github.com/SynBioDex/libSBOLj/releases/tag/v2.4.0
 
 ## Installation
 
-1. **Clone or Download the UCF2SBOL Code**:
+1. **Clone the UCF2SBOL Code**:
    
    - git clone https://github.com/MyersResearchGroup/UCF2SBOL.git
 
