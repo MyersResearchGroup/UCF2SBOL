@@ -110,7 +110,7 @@ To Run the program from the commandline interface using the following commandlin
 ```
 
 ## Explanation of the UCF2SBOL commandline:
- /path/to/your/jdk/bin/java: Path to your JDK bin folder. 
+ /path/to/your/jdk/bin/java: Path to your JDK bin folder.   
  -Dfile.encoding=UTF-8: Sets the default file encoding for the Java application to UTF-8. This is important if the application deals with text files, especially when handling non-ASCII characters.  
  -Dsun.stdout.encoding=UTF-8: Ensures that the standard output (stdout) encoding is set to UTF-8. This can help avoid issues with character encoding in the console output.  
  -Dsun.stderr.encoding=UTF-8: Ensures that the standard error (stderr) encoding is set to UTF-8. Similar to stdout, this makes sure error messages are correctly encoded.  
