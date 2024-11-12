@@ -110,11 +110,15 @@ To Run the program from the commandline interface using the following commandlin
 ```
 
 ## Explanation of the UCF2SBOL commandline:
- /path/to/your/jdk/bin/java: Path to your JDK bin folder.   
- /path/to/your/classes:    Path to the compiled classes folder.  
+ /path/to/your/jdk/bin/java: Path to your JDK bin folder. 
+ -Dfile.encoding=UTF-8: Sets the default file encoding for the Java application to UTF-8. This is important if the application deals with text files, especially when handling non-ASCII characters.  
+ -Dsun.stdout.encoding=UTF-8: Ensures that the standard output (stdout) encoding is set to UTF-8. This can help avoid issues with character encoding in the console output.  
+ -Dsun.stderr.encoding=UTF-8: Ensures that the standard error (stderr) encoding is set to UTF-8. Similar to stdout, this makes sure error messages are correctly encoded.  
+ /path/to/your/classes:  Path to the compiled classes folder.  
  /path/to/your/json-simple-1.1.1.jar: Path to the json-simple JAR file.  
  /path/to/your/libSBOLj-2.4.0-withDependencies.jar: Path to the libSBOLj JAR file with dependencies.   
-  <Add-here-commandline-arguments-from-above-examples> : Commandline arguments listed in the examples above and explained in the overview below.  
+ Add commandline arguments listed in the examples above and explained in the overview below.  
+
   
 ### Commandline Arguments Overview
 
