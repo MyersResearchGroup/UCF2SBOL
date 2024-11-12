@@ -124,7 +124,7 @@ To Run the program from the commandline interface using the following commandlin
  
  **/path/to/your/libSBOLj-2.4.0-withDependencies.jar**: Path to the libSBOLj JAR file with dependencies.   
  
- Add commandline arguments listed in the examples above and explained in the overview below.  
+ Add commandline arguments listed from the examples above and explained in the overview below.  
 
   
 ### Commandline Arguments Overview
