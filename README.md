@@ -36,6 +36,9 @@ If you are already running Eclipse or Intellij IDEA, you should have already JDK
 
 Download from here: https://github.com/SynBioDex/libSBOLj/releases/tag/v2.4.0
 
+- **json-simple-1.1.1.jar**
+Download from here: https://repo1.maven.org/maven2/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1.jar
+
 ## Installation
 
 1. **Clone the UCF2SBOL Code**:
@@ -99,6 +102,17 @@ To use UCF2SBOL, you’ll need to configure command-line arguments in IntelliJ t
 3. **Run the Program**:
 - To run the program with a sample configuration: Click the **Run** button in IntelliJ to execute the program with your specified command-line arguments.
 
+## Commandline usage:
+To Run the program from the commandline interface using the following commandline:
+  /path/to/your/jdk/bin/java -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 -classpath /path/to/your/classes:/path/to/your/json-simple-1.1.1.jar:/path/to/your/libSBOLj-2.4.0-withDependencies.jar UCF2SBOL.UCF2SBOL.Cello2SBOL <Add-here-commandline-arguments-from-above-examples>
+
+## Explanation of the UCF2SBOL commandline:
+ /path/to/your/jdk/bin/java: Path to your JDK bin folder 
+ /path/to/your/classes:    Path to the compiled classes folder.
+ /path/to/your/json-simple-1.1.1.jar: Path to the json-simple JAR file.
+ /path/to/your/libSBOLj-2.4.0-withDependencies.jar: Path to the libSBOLj JAR file with dependencies.
+ <Add-here-commandline-arguments-from-above-examples> : Commandline arguments listed in the examples above and explained in the overview below.
+  
 ### Command-Line Arguments Overview
 
 1. **login email** - Email for SynBioHub login.
