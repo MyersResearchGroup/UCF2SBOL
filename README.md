@@ -36,7 +36,7 @@ If you are already running Eclipse or Intellij IDEA, you should have already JDK
 
 Download from here: https://github.com/SynBioDex/libSBOLj/releases/tag/v2.4.0
 
-- **json-simple-1.1.1.jar**
+- **json-simple-1.1.1.jar**   
 Download from here: https://repo1.maven.org/maven2/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1.jar
 
 ## Installation
