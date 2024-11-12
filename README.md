@@ -123,6 +123,8 @@ To Run the program from the commandline interface using the following commandlin
  **/path/to/your/json-simple-1.1.1.jar**: Path to the json-simple JAR file.  
  
  **/path/to/your/libSBOLj-2.4.0-withDependencies.jar**: Path to the libSBOLj JAR file with dependencies.   
+
+ **UCF2SBOL.UCF2SBOL.Cello2SBOL**: Main Class that specifies the main class to be executed. This is the entry point of the program.
  
  Add commandline arguments listed from the examples above and explained in the overview below.  
 
