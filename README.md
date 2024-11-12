@@ -69,7 +69,7 @@ To run UCF2SBOL, you need to add the `libSBOLj-2.4.0-withDependencies.jar` libra
 
 To use UCF2SBOL, you’ll need to configure command-line arguments in IntelliJ to specify required parameters. The program accepts multiple arguments, which it uses for SynBioHub login credentials, file paths, and collection details.
 
-### Command-Line Arguments
+### Commandliine Arguments
 
 1. **Open Run/Debug Configurations**:
 - Go to **Run** > **Edit Configurations** in IntelliJ.
@@ -110,13 +110,13 @@ To Run the program from the commandline interface using the following commandlin
 ```
 
 ## Explanation of the UCF2SBOL commandline:
- /path/to/your/jdk/bin/java: Path to your JDK bin folder 
- /path/to/your/classes:    Path to the compiled classes folder.
- /path/to/your/json-simple-1.1.1.jar: Path to the json-simple JAR file.
- /path/to/your/libSBOLj-2.4.0-withDependencies.jar: Path to the libSBOLj JAR file with dependencies.
- <Add-here-commandline-arguments-from-above-examples> : Commandline arguments listed in the examples above and explained in the overview below.
+ /path/to/your/jdk/bin/java: Path to your JDK bin folder.   
+ /path/to/your/classes:    Path to the compiled classes folder.  
+ /path/to/your/json-simple-1.1.1.jar: Path to the json-simple JAR file.  
+ /path/to/your/libSBOLj-2.4.0-withDependencies.jar: Path to the libSBOLj JAR file with dependencies.  
+ <Add-here-commandline-arguments-from-above-examples> : Commandline arguments listed in the examples above and explained in the overview below.  
   
-### Command-Line Arguments Overview
+### Commandline Arguments Overview
 
 1. **login email** - Email for SynBioHub login.
 
