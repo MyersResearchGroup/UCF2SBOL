@@ -113,8 +113,8 @@ To Run the program from the commandline interface using the following commandlin
  /path/to/your/jdk/bin/java: Path to your JDK bin folder.   
  /path/to/your/classes:    Path to the compiled classes folder.  
  /path/to/your/json-simple-1.1.1.jar: Path to the json-simple JAR file.  
- /path/to/your/libSBOLj-2.4.0-withDependencies.jar: Path to the libSBOLj JAR file with dependencies.  
- <Add-here-commandline-arguments-from-above-examples> : Commandline arguments listed in the examples above and explained in the overview below.  
+ /path/to/your/libSBOLj-2.4.0-withDependencies.jar: Path to the libSBOLj JAR file with dependencies.   
+  <Add-here-commandline-arguments-from-above-examples> : Commandline arguments listed in the examples above and explained in the overview below.  
   
 ### Commandline Arguments Overview
 
