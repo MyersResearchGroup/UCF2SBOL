@@ -153,13 +153,32 @@ public class Cello2SBOL {
 	 */
 	private static void createProtein(SBOLDocument document,String cdsId,ComponentDefinition cds) throws SBOLValidationException
 	{
+		// TODO: convert sequence of the cds to Amino Acid Sequence
+		// TODO: Before adding a new protein, check all other protein objects in the document to see if they have the same amino acid sequence
+		// TODO: If the protein is found in the document, do not create a new protein or a new protein degradation module,
+		// TODO: but DO create a new protein production module
+		// Creates a new protein object
 		ComponentDefinition proteinComponentDefinition =
 				document.createComponentDefinition(cdsId+"_protein", version, ComponentDefinition.PROTEIN);
 		proteinComponentDefinition.setName(cdsId+"_protein");
 		proteinComponentDefinition.addWasGeneratedBy(activityURI);
 		proteinComponentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
-
+		// TODO: create an SBOL Sequence object for the the Amino Acid Sequence
+		
+		// Creates a new protein degradation module
 		ModuleDefinition moduleDefinition = 
+				document.createModuleDefinition(cdsId+"_protein_degradation", version);
+		moduleDefinition.setName(cdsId+"_protein_degradation");
+		moduleDefinition.addWasGeneratedBy(activityURI);
+		moduleDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
+		moduleDefinition.createFunctionalComponent(cdsId+"_protein", AccessType.PUBLIC, 
+				proteinComponentDefinition.getIdentity(), DirectionType.NONE);
+		String interactionId = cdsId + "_degradation_interaction";
+		Interaction interaction = moduleDefinition.createInteraction(interactionId, SystemsBiologyOntology.DEGRADATION);
+		interaction.createParticipation(cdsId+"_protein", cdsId+"_protein",  SystemsBiologyOntology.REACTANT);
+
+		// Creates a new protein production module
+		moduleDefinition = 
 				document.createModuleDefinition(cdsId+"_protein_production", version);
 		moduleDefinition.setName(cdsId+"_protein_production");
 		moduleDefinition.addWasGeneratedBy(activityURI);
@@ -168,21 +187,11 @@ public class Cello2SBOL {
 				cds.getIdentity(), DirectionType.NONE);
 		moduleDefinition.createFunctionalComponent(cdsId+"_protein", AccessType.PUBLIC, 
 				proteinComponentDefinition.getIdentity(), DirectionType.NONE);
-		Interaction interaction = moduleDefinition.createInteraction(cdsId+"_protein_interaction", 
+		interaction = moduleDefinition.createInteraction(cdsId+"_protein_interaction", 
 				SystemsBiologyOntology.GENETIC_PRODUCTION);
 		interaction.createParticipation(cdsId, cdsId, SystemsBiologyOntology.TEMPLATE);
 		interaction.createParticipation(cdsId+"_protein", cdsId+"_protein", SystemsBiologyOntology.PRODUCT);
 		
-		moduleDefinition = 
-				document.createModuleDefinition(cdsId+"_protein_degradation", version);
-		moduleDefinition.setName(cdsId+"_protein_degradation");
-		moduleDefinition.addWasGeneratedBy(activityURI);
-		moduleDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
-		moduleDefinition.createFunctionalComponent(cdsId+"_protein", AccessType.PUBLIC, 
-				proteinComponentDefinition.getIdentity(), DirectionType.NONE);
-		String interactionId = cdsId + "_degradation_interaction";
-		interaction = moduleDefinition.createInteraction(interactionId, SystemsBiologyOntology.DEGRADATION);
-		interaction.createParticipation(cdsId+"_protein", cdsId+"_protein",  SystemsBiologyOntology.REACTANT);
 	}
 	
 	
@@ -406,6 +415,8 @@ public class Cello2SBOL {
 			else {
 				respfxn = (String)responseMap.get(gate_name).get("equation");
 			}
+			
+			// TODO: move the loop through devices to this location, so that a new device is created for each cassette
 			ComponentDefinition componentDefinition = 
 					document.createComponentDefinition(gate_name, version, ComponentDefinition.DNA_REGION);
 			componentDefinition.setName(gate_name);
@@ -447,6 +458,7 @@ public class Cello2SBOL {
 //	        	componentDefinition.createAnnotation(new QName(celloNS,name+"_on_threshold","cello"), 
 //	        			(Double)((JSONObject)obj).get("on_threshold"));
 //	        }
+	        // TODO: this devices loop needs to move up higher
 	        JSONArray expression_cassettes = v2 ? (JSONArray) gate.get("devices") : (JSONArray) gate.get("expression_cassettes");
 			String seq = "";
 			for (Object obj : expression_cassettes) {
@@ -481,6 +493,8 @@ public class Cello2SBOL {
 					start += cass_seq.length();
 					annotationCount++;
 					
+					// TODO: need to check that this does not get built twice
+					// Creates the inhibition ModuleDefinition
 					if (partComponentDefinition.getRoles().contains(SequenceOntology.CDS)) {
 						String promoter = v2 ? (String)((JSONArray)gate.get("outputs")).get(0) : (String)gate.get("promoter");
 						if (document.getModuleDefinition(partId+"_protein_"+promoter+"_repression", version)==null) {
