@@ -42,6 +42,13 @@ import org.sbolstandard.core2.SystemsBiologyOntology;
 import org.synbiohub.frontend.SynBioHubException;
 import org.synbiohub.frontend.SynBioHubFrontend;
 
+/**
+ * The Cello2SBOL class provides methods for converting biological parts and gates in CELLO UCF format
+ * to SBOL (Synthetic Biology Open Language) format.
+ * It handles components such as parts, gates, input sensors, output reporters,
+ * as well as interactions like protein synthesis, inhibition, activation,
+ * and complex formation.
+ */
 public class Cello2SBOL {
 	
 	static String uriPrefix = "http://cellocad.org/"; 
@@ -97,6 +104,15 @@ public class Cello2SBOL {
 	    }
 	}
 
+	/**
+	 * Converts parts described in a HashMap to SBOL (Synthetic Biology Open Language) format.
+	 *
+	 * @param document The SBOLDocument to which the parts will be added.
+	 * @param partsMap A HashMap containing parts represented as JSONObjects,
+	 *                 where the key is a String identifier and the value is the corresponding JSONObject.
+	 * @throws SBOLValidationException If there is an error validating the SBOL document.
+	 * @throws IOException If there is an input/output error during the conversion process.
+	 */
 	private static void convertPartsToSBOL(SBOLDocument document,HashMap<String,JSONObject> partsMap) throws SBOLValidationException, IOException {
 
 		for (JSONObject part : partsMap.values()) {
@@ -126,7 +142,16 @@ public class Cello2SBOL {
 		}
 	}
 	
-	private static void createProtein(SBOLDocument document,String cdsId,ComponentDefinition cds) throws SBOLValidationException 
+	/**
+	 * Creates a protein component in the given SBOL document and its associated
+	 * interactions and degradation pathways.
+	 *
+	 * @param document The SBOLDocument to which the protein component will be added.
+	 * @param cdsId    The identifier for the coding sequence (CDS) that will be used to create the protein.
+	 * @param cds      The ComponentDefinition for the CDS that will be linked to the protein production.
+	 * @throws SBOLValidationException If there is an error validating the SBOL document.
+	 */
+	private static void createProtein(SBOLDocument document,String cdsId,ComponentDefinition cds) throws SBOLValidationException
 	{
 		ComponentDefinition proteinComponentDefinition =
 				document.createComponentDefinition(cdsId+"_protein", version, ComponentDefinition.PROTEIN);
@@ -161,7 +186,16 @@ public class Cello2SBOL {
 	}
 	
 	
-	private static void createRNA(SBOLDocument document,String rnaId,ComponentDefinition rna) throws SBOLValidationException 
+	/**
+	 * Creates an RNA component in the given SBOL document and its associated interactions
+	 * and degradation pathways.
+	 *
+	 * @param document The SBOLDocument to which the RNA component will be added.
+	 * @param rnaId    The identifier for the RNA that will be created.
+	 * @param rna      The ComponentDefinition for the RNA that will be linked to the RNA production.
+	 * @throws SBOLValidationException If there is an error validating the SBOL document.
+	 */
+	private static void createRNA(SBOLDocument document,String rnaId,ComponentDefinition rna) throws SBOLValidationException
 	{
 		ComponentDefinition rnaComponentDefinition =
 				document.createComponentDefinition(rnaId+"_rna", version, ComponentDefinition.RNA_MOLECULE);
@@ -196,6 +230,21 @@ public class Cello2SBOL {
 		interaction.createParticipation(rnaId+"_rna", rnaId+"_rna",  SystemsBiologyOntology.REACTANT);
 	}
 	
+	/**
+	 * Creates an inhibition interaction in the given SBOL document between the inhibitor and the inhibited components,
+	 * with optional parameters for ymin, ymax, alpha, beta, tau_on, and tau_off.
+	 *
+	 * @param document The SBOLDocument to which the inhibition interaction will be added.
+	 * @param inhibitor The identifier for the inhibitor component.
+	 * @param inhibited The identifier for the inhibited component.
+	 * @param ymin Optional parameter representing the minimum output value.
+	 * @param ymax Optional parameter representing the maximum output value.
+	 * @param alpha Optional parameter representing the alpha value.
+	 * @param beta Optional parameter representing the beta value.
+	 * @param tau_on Optional parameter representing the tau_on value.
+	 * @param tau_off Optional parameter representing the tau_off value.
+	 * @throws SBOLValidationException If there is an error validating the SBOL document.
+	 */
 	private static void createInhibition(SBOLDocument document,String inhibitor,String inhibited,
 			Double ymin,Double ymax,Double alpha,Double beta,Double tau_on,Double tau_off) throws SBOLValidationException 
 	{
@@ -233,6 +282,21 @@ public class Cello2SBOL {
 		}
 	}
 	
+	/**
+	 * Creates an activation interaction in the given SBOL document between the activator and the promoter components,
+	 * with optional parameters for ymin, ymax, alpha, beta, tau_on, and tau_off.
+	 *
+	 * @param document The SBOLDocument to which the activation interaction will be added.
+	 * @param activator The identifier for the activator component.
+	 * @param promoter The identifier for the promoter component.
+	 * @param ymin Optional parameter representing the minimum output value.
+	 * @param ymax Optional parameter representing the maximum output value.
+	 * @param alpha Optional parameter representing the alpha value.
+	 * @param beta Optional parameter representing the beta value.
+	 * @param tau_on Optional parameter representing the tau_on value.
+	 * @param tau_off Optional parameter representing the tau_off value.
+	 * @throws SBOLValidationException If there is an error validating the SBOL document.
+	 */
 	private static void createActivation(SBOLDocument document,String activator,String promoter,
 			Double ymin,Double ymax,Double alpha,Double beta,Double tau_on,Double tau_off) throws SBOLValidationException 
 	{
@@ -270,7 +334,16 @@ public class Cello2SBOL {
 		}
 	}
 	
-	private static void createComplex(SBOLDocument document,String reactant1,String reactant2) throws SBOLValidationException 
+	/**
+	 * Creates a complex component from two reactant components within the given SBOL document,
+	 * including the necessary interactions and degradation pathways.
+	 *
+	 * @param document The SBOLDocument to which the complex component will be added.
+	 * @param reactant1 The identifier for the first reactant component.
+	 * @param reactant2 The identifier for the second reactant component.
+	 * @throws SBOLValidationException If there is an error validating the SBOL document.
+	 */
+	private static void createComplex(SBOLDocument document,String reactant1,String reactant2) throws SBOLValidationException
 	{
 		String complex = reactant1 + "_" + reactant2;
 		ComponentDefinition complexComponentDefinition = 
@@ -307,6 +380,16 @@ public class Cello2SBOL {
 		interaction.createParticipation(complex, complex,  SystemsBiologyOntology.REACTANT);
 	}
 
+	/**
+	 * Converts the gate parts to SBOL format and adds them to the given SBOL document.
+	 *
+	 * @param document      the SBOL document to which gate parts will be added
+	 * @param gate_partsArr a set containing JSONObjects representing the gate parts
+	 * @param gatesMap      a map containing gate information with the gate name as the key
+	 * @param responseMap   a map containing response function information with the gate name as the key
+	 * @param functionMap   a map containing function information used to generate response functions
+	 * @throws SBOLValidationException if there is an error in the SBOL validation process
+	 */
 	private static void convertGatePartsToSBOL(SBOLDocument document,HashSet<JSONObject> gate_partsArr,
 			HashMap<String,JSONObject> gatesMap,HashMap<String,JSONObject> responseMap, HashMap<String,JSONObject> functionMap) throws SBOLValidationException {
 		for (JSONObject gate : gate_partsArr) {
@@ -425,6 +508,15 @@ public class Cello2SBOL {
 		}
 	}
 
+	/**
+	 * Converts input sensor data to SBOL (Synthetic Biology Open Language) format and adds it to the SBOLDocument.
+	 *
+	 * @param document The SBOLDocument to which the converted input sensors will be added.
+	 * @param input_sensorsArr A HashSet of JSONObjects, each representing an input sensor.
+	 * @param responseMap A HashMap where the key is the sensor name and the value is a JSONObject representing the response for each sensor.
+	 * @param functionMap A HashMap where the key is the function name and the value is a JSONObject representing the function details.
+	 * @throws SBOLValidationException If there is a validation error when creating or modifying SBOL objects.
+	 */
 	private static void convertInputSensorsToSBOL(SBOLDocument document,HashSet<JSONObject> input_sensorsArr,HashMap<String,JSONObject> responseMap, HashMap<String,JSONObject> functionMap) throws SBOLValidationException {
 		for (JSONObject sensor : input_sensorsArr) {
 			String sensor_name = (String)sensor.get("name");
@@ -533,6 +625,16 @@ public class Cello2SBOL {
 		}
 	}
 
+	/**
+	 * Converts output reporters to SBOL (Synthetic Biology Open Language) format components
+	 * and adds them to the provided SBOL document.
+	 *
+	 * @param document The SBOLDocument object where the output reporters will be added.
+	 * @param output_reportersArr A HashSet containing JSONObjects representing the output reporters.
+	 * @param responseMap A HashMap mapping reporter names to JSONObjects that include the response functions and parameters.
+	 * @param functionMap A HashMap mapping function names to JSONObjects that include the equations and other function details.
+	 * @throws SBOLValidationException If there is an error in the SBOL validation process.
+	 */
 	private static void convertOutputReportersToSBOL(SBOLDocument document,HashSet<JSONObject> output_reportersArr,HashMap<String,JSONObject> responseMap, HashMap<String,JSONObject> functionMap) throws SBOLValidationException {
 		for (JSONObject sensor : output_reportersArr) {
 			String reporter_name = (String)sensor.get("name");
@@ -611,6 +713,12 @@ public class Cello2SBOL {
 		}
 	}
 	
+	/**
+	 * Checks if a given JSON array contains both "models" and "structures" collections.
+	 *
+	 * @param a JSONArray to be checked.
+	 * @return true if both "models" and "structures" are present, false otherwise.
+	 */
 	public static boolean isV2(JSONArray a) {
 		boolean models = false;
 		boolean structures = false;
@@ -635,6 +743,32 @@ public class Cello2SBOL {
 		return false;
 	}
 	
+	/**
+	 * The main method to convert UCF to SBOL
+	 *
+	 * @param args the array of string arguments where:
+	 *        args[0] - login email
+	 *        args[1] - password
+	 *        args[2] - login user
+	 *        args[3] - temporary directory
+	 *        args[4] - database prefix
+	 *        args[5] - path to UCF file
+	 *        args[6] - path to input file (optional)
+	 *        args[7] - path to output file (optional)
+	 *        args[8] - database URL (optional)
+	 *        args[9] - collection id (optional)
+	 *        args[10] - collection version (optional)
+	 *        args[11] - collection name (optional)
+	 *        args[12] - collection description (optional)
+	 *        args[13] - collection pubMedId (optional)
+	 * @throws SBOLValidationException if an SBOL validation error occurs
+	 * @throws SBOLConversionException if an SBOL conversion error occurs
+	 * @throws SynBioHubException if a SynBioHub related error occurs
+	 * @throws FileNotFoundException if a specified file is not found
+	 * @throws IOException if an I/O error occurs
+	 * @throws ParseException if a parsing error occurs
+	 * @throws URISyntaxException if a URI syntax error occurs
+	 */
 	// args[0] - login email
 	// args[1] - password
 	// args[2] - login user
@@ -896,7 +1030,16 @@ public class Cello2SBOL {
         	sbh.createCollection(collectionId, collectionVersion, collectionName, collectionDescription,
         			collectionPubMedId, true);
         	sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion), pathToUCFFile);
-        	if (v2) {
+
+			// Define the base URI
+			String baseURI = databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion;
+
+			// Print the URL for attaching the main file
+			System.out.println("Attaching file to URL: " + baseURI);
+
+
+
+			if (v2) {
         		sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion), pathToInputFile);
             	sbh.attachFile(URI.create(databasePrefix + "/user/" + loginUser + "/" + collectionId + "/" + collectionId + "_collection/" + collectionVersion), pathToOutputFile);
 
