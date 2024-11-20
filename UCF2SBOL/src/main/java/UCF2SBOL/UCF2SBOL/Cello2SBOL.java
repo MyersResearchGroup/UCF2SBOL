@@ -424,6 +424,7 @@ public class Cello2SBOL {
 			}
 			
 			// TODO: move the loop through devices to this location, so that a new device is created for each cassette
+			// TODO: make sure to create a unique gate name from cassette name
 			ComponentDefinition componentDefinition = 
 					document.createComponentDefinition(gate_name, version, ComponentDefinition.DNA_REGION);
 			componentDefinition.setName(gate_name);
@@ -481,6 +482,8 @@ public class Cello2SBOL {
 				if (((String)cassette_parts.get(0)).startsWith("#in")) { // && ((String)cassette_parts.get(1)).startsWith("#in")) {
 					continue;
 				}
+				boolean firstDevice = true;
+				// TODO: end of loop start
 				for (Object obj2 : cassette_parts) {
 					String partId = (String)obj2;
 					ComponentDefinition partComponentDefinition = document.getComponentDefinition(partId, version);
@@ -500,20 +503,22 @@ public class Cello2SBOL {
 					start += cass_seq.length();
 					annotationCount++;
 					
-					// TODO: need to check that this does not get built twice
 					// Creates the inhibition ModuleDefinition
-					if (partComponentDefinition.getRoles().contains(SequenceOntology.CDS)) {
-						String promoter = v2 ? (String)((JSONArray)gate.get("outputs")).get(0) : (String)gate.get("promoter");
-						if (document.getModuleDefinition(partId+"_protein_"+promoter+"_repression", version)==null) {
-							createInhibition(document,partId+"_protein",promoter,null,null,null,null,null,null);
+					if (firstDevice) {
+						if (partComponentDefinition.getRoles().contains(SequenceOntology.CDS)) {
+							String promoter = v2 ? (String)((JSONArray)gate.get("outputs")).get(0) : (String)gate.get("promoter");
+							if (document.getModuleDefinition(partId+"_protein_"+promoter+"_repression", version)==null) {
+								createInhibition(document,partId+"_protein",promoter,null,null,null,null,null,null);
+							}
 						}
-					}
-					if (partComponentDefinition.getRoles().contains(URI.create(so + "SO:0001264"))) {
-						String promoter = v2 ? (String)((JSONArray)gate.get("outputs")).get(0) : (String)gate.get("promoter");
-						createComplex(document,partId+"_rna","dCAS9_Mxi1_protein");
-						if (document.getModuleDefinition(partId+"_rna_dCAS9_Mxi1_protein_"+promoter+"_repression", version)==null) {
-							createInhibition(document,partId+"_rna_dCAS9_Mxi1_protein",promoter,null,null,null,null,null,null);
+						if (partComponentDefinition.getRoles().contains(URI.create(so + "SO:0001264"))) {
+							String promoter = v2 ? (String)((JSONArray)gate.get("outputs")).get(0) : (String)gate.get("promoter");
+							createComplex(document,partId+"_rna","dCAS9_Mxi1_protein");
+							if (document.getModuleDefinition(partId+"_rna_dCAS9_Mxi1_protein_"+promoter+"_repression", version)==null) {
+								createInhibition(document,partId+"_rna_dCAS9_Mxi1_protein",promoter,null,null,null,null,null,null);
+							}
 						}
+						firstDevice = false;
 					}
 				}
 				break;
