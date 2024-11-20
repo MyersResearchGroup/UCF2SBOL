@@ -134,7 +134,7 @@ public class Cello2SBOL {
 			componentDefinition.addSequence(sequence);
 			
 			if (partType.equals("cds")) {
-				createProtein(document,name,componentDefinition);
+				createProtein(document,name,componentDefinition, dnasequence);
 			}
 			if (partType.equals("grna")) {
 				createRNA(document,name,componentDefinition);
@@ -151,32 +151,40 @@ public class Cello2SBOL {
 	 * @param cds      The ComponentDefinition for the CDS that will be linked to the protein production.
 	 * @throws SBOLValidationException If there is an error validating the SBOL document.
 	 */
-	private static void createProtein(SBOLDocument document,String cdsId,ComponentDefinition cds) throws SBOLValidationException
+	private static void createProtein(SBOLDocument document,String cdsId,ComponentDefinition cds,String cdsSequence) throws SBOLValidationException
 	{
-		// TODO: convert sequence of the cds to Amino Acid Sequence
+		// TODO: convert cds sequence to protein sequence
+		//String proteinSeq = NEWFunction(cdsSequence);
+
+		ComponentDefinition proteinComponentDefinition = null;
+		ModuleDefinition moduleDefinition = null;
+		Interaction interaction = null;
 		// TODO: Before adding a new protein, check all other protein objects in the document to see if they have the same amino acid sequence
 		// TODO: If the protein is found in the document, do not create a new protein or a new protein degradation module,
 		// TODO: but DO create a new protein production module
-		// Creates a new protein object
-		ComponentDefinition proteinComponentDefinition =
-				document.createComponentDefinition(cdsId+"_protein", version, ComponentDefinition.PROTEIN);
-		proteinComponentDefinition.setName(cdsId+"_protein");
-		proteinComponentDefinition.addWasGeneratedBy(activityURI);
-		proteinComponentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
-		// TODO: create an SBOL Sequence object for the the Amino Acid Sequence
 		
-		// Creates a new protein degradation module
-		ModuleDefinition moduleDefinition = 
-				document.createModuleDefinition(cdsId+"_protein_degradation", version);
-		moduleDefinition.setName(cdsId+"_protein_degradation");
-		moduleDefinition.addWasGeneratedBy(activityURI);
-		moduleDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
-		moduleDefinition.createFunctionalComponent(cdsId+"_protein", AccessType.PUBLIC, 
-				proteinComponentDefinition.getIdentity(), DirectionType.NONE);
-		String interactionId = cdsId + "_degradation_interaction";
-		Interaction interaction = moduleDefinition.createInteraction(interactionId, SystemsBiologyOntology.DEGRADATION);
-		interaction.createParticipation(cdsId+"_protein", cdsId+"_protein",  SystemsBiologyOntology.REACTANT);
+		if (proteinComponentDefinition == null) {
+		// Creates a new protein object
+			proteinComponentDefinition =
+					document.createComponentDefinition(cdsId+"_protein", version, ComponentDefinition.PROTEIN);
+			proteinComponentDefinition.setName(cdsId+"_protein");
+			proteinComponentDefinition.addWasGeneratedBy(activityURI);
+			proteinComponentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
+			// TODO: create an SBOL Sequence object for the the Amino Acid Sequence
 
+			// Creates a new protein degradation module
+			moduleDefinition = 
+					document.createModuleDefinition(cdsId+"_protein_degradation", version);
+			moduleDefinition.setName(cdsId+"_protein_degradation");
+			moduleDefinition.addWasGeneratedBy(activityURI);
+			moduleDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
+			moduleDefinition.createFunctionalComponent(cdsId+"_protein", AccessType.PUBLIC, 
+					proteinComponentDefinition.getIdentity(), DirectionType.NONE);
+			String interactionId = cdsId + "_degradation_interaction";
+			interaction = moduleDefinition.createInteraction(interactionId, SystemsBiologyOntology.DEGRADATION);
+			interaction.createParticipation(cdsId+"_protein", cdsId+"_protein",  SystemsBiologyOntology.REACTANT);
+		}
+		
 		// Creates a new protein production module
 		moduleDefinition = 
 				document.createModuleDefinition(cdsId+"_protein_production", version);
@@ -191,7 +199,6 @@ public class Cello2SBOL {
 				SystemsBiologyOntology.GENETIC_PRODUCTION);
 		interaction.createParticipation(cdsId, cdsId, SystemsBiologyOntology.TEMPLATE);
 		interaction.createParticipation(cdsId+"_protein", cdsId+"_protein", SystemsBiologyOntology.PRODUCT);
-		
 	}
 	
 	
@@ -715,7 +722,7 @@ public class Cello2SBOL {
 				annotationCount++;
 				
 				String output_protein = partId.replace("_cassette", "");
-				createProtein(document,output_protein,currentComponent);
+				createProtein(document,output_protein,currentComponent,cass_seq);
 			}
 			
 			Sequence sequence = document.createSequence(reporter_name+"_sequence", version, seq, Sequence.IUPAC_DNA);
