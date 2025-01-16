@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TimeZone;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -62,6 +63,7 @@ public class Cello2SBOL {
 
 	static URI activityURI;
 	static String createdDate;
+
 	
 	private static URI getRole(String type) {
 		if (type.equals("ribozyme")) {
@@ -103,6 +105,71 @@ public class Cello2SBOL {
 	        return null;
 	    }
 	}
+
+		/**
+		 * Translates a DNA nucleotide sequence into an amino acid sequence.
+		 *
+		 * @param nucleotideSequence The DNA sequence to be translated.
+		 * @return The resulting amino acid sequence as a String.
+		 */
+
+	public static String translateToAminoAcids(String nucleotideSequence) {
+			Map<String, String> codonTable = new HashMap<>();
+			codonTable.put("TTT", "F"); codonTable.put("TTC", "F"); // Phenylalanine
+			codonTable.put("TTA", "L"); codonTable.put("TTG", "L"); // Leucine
+			codonTable.put("CTT", "L"); codonTable.put("CTC", "L");
+			codonTable.put("CTA", "L"); codonTable.put("CTG", "L");
+			codonTable.put("ATT", "I"); codonTable.put("ATC", "I"); // Isoleucine
+			codonTable.put("ATA", "I");
+			codonTable.put("ATG", "M");                              // Methionine (Start)
+			codonTable.put("GTT", "V"); codonTable.put("GTC", "V"); // Valine
+			codonTable.put("GTA", "V"); codonTable.put("GTG", "V");
+			codonTable.put("TCT", "S"); codonTable.put("TCC", "S"); // Serine
+			codonTable.put("TCA", "S"); codonTable.put("TCG", "S");
+			codonTable.put("CCT", "P"); codonTable.put("CCC", "P"); // Proline
+			codonTable.put("CCA", "P"); codonTable.put("CCG", "P");
+			codonTable.put("ACT", "T"); codonTable.put("ACC", "T"); // Threonine
+			codonTable.put("ACA", "T"); codonTable.put("ACG", "T");
+			codonTable.put("GCT", "A"); codonTable.put("GCC", "A"); // Alanine
+			codonTable.put("GCA", "A"); codonTable.put("GCG", "A");
+			codonTable.put("TAT", "Y"); codonTable.put("TAC", "Y"); // Tyrosine
+			codonTable.put("TAA", "*"); codonTable.put("TAG", "*"); // Stop
+			codonTable.put("CAT", "H"); codonTable.put("CAC", "H"); // Histidine
+			codonTable.put("CAA", "Q"); codonTable.put("CAG", "Q"); // Glutamine
+			codonTable.put("AAT", "N"); codonTable.put("AAC", "N"); // Asparagine
+			codonTable.put("AAA", "K"); codonTable.put("AAG", "K"); // Lysine
+			codonTable.put("GAT", "D"); codonTable.put("GAC", "D"); // Aspartic acid
+			codonTable.put("GAA", "E"); codonTable.put("GAG", "E"); // Glutamic acid
+			codonTable.put("TGT", "C"); codonTable.put("TGC", "C"); // Cysteine
+			codonTable.put("TGA", "*");                             // Stop
+			codonTable.put("TGG", "W");                              // Tryptophan
+			codonTable.put("CGT", "R"); codonTable.put("CGC", "R"); // Arginine
+			codonTable.put("CGA", "R"); codonTable.put("CGG", "R");
+			codonTable.put("AGT", "S"); codonTable.put("AGC", "S"); // Serine
+			codonTable.put("AGA", "R"); codonTable.put("AGG", "R"); // Arginine
+			codonTable.put("GGT", "G"); codonTable.put("GGC", "G"); // Glycine
+			codonTable.put("GGA", "G"); codonTable.put("GGG", "G");
+
+			nucleotideSequence = nucleotideSequence.toUpperCase();
+
+			// Print the entire nucleotide sequence before translation
+			//System.out.println("Nucleotide Sequence: " + nucleotideSequence);
+
+			StringBuilder aminoAcidSequence = new StringBuilder();
+
+			for (int i = 0; i <= nucleotideSequence.length() - 3; i += 3) {
+				String codon = nucleotideSequence.substring(i, i + 3);
+				String aminoAcid = codonTable.getOrDefault(codon, "?");
+
+				if ("*".equals(aminoAcid)) {
+					break;
+				}
+				aminoAcidSequence.append(aminoAcid);
+			}
+
+			return aminoAcidSequence.toString();
+		}
+
 
 	/**
 	 * Converts parts described in a HashMap to SBOL (Synthetic Biology Open Language) format.
@@ -151,57 +218,85 @@ public class Cello2SBOL {
 	 * @param cds      The ComponentDefinition for the CDS that will be linked to the protein production.
 	 * @throws SBOLValidationException If there is an error validating the SBOL document.
 	 */
-	private static void createProtein(SBOLDocument document,String cdsId,ComponentDefinition cds,String cdsSequence) throws SBOLValidationException
-	{
-		// TODO: convert cds sequence to protein sequence
-		//String proteinSeq = NEWFunction(cdsSequence);
+	private static void createProtein(SBOLDocument document, String cdsId, ComponentDefinition cds, String cdsSequence) throws SBOLValidationException {
+
+		String proteinSeq = translateToAminoAcids(cdsSequence);
+		//System.out.print("Translated Sequence: " + proteinSeq);
 
 		ComponentDefinition proteinComponentDefinition = null;
-		ModuleDefinition moduleDefinition = null;
-		Interaction interaction = null;
-		// TODO: Before adding a new protein, check all other protein objects in the document to see if they have the same amino acid sequence
-		// TODO: If the protein is found in the document, do not create a new protein or a new protein degradation module,
-		// TODO: but DO create a new protein production module
-		
-		if (proteinComponentDefinition == null) {
-		// Creates a new protein object
-			proteinComponentDefinition =
-					document.createComponentDefinition(cdsId+"_protein", version, ComponentDefinition.PROTEIN);
-			proteinComponentDefinition.setName(cdsId+"_protein");
-			proteinComponentDefinition.addWasGeneratedBy(activityURI);
-			proteinComponentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
-			// TODO: create an SBOL Sequence object for the the Amino Acid Sequence
+		ModuleDefinition moduleDefinition;
+		Interaction interaction;
 
-			// Creates a new protein degradation module
-			moduleDefinition = 
-					document.createModuleDefinition(cdsId+"_protein_degradation", version);
-			moduleDefinition.setName(cdsId+"_protein_degradation");
+// Check if a protein with the same amino acid sequence already exists
+		for (ComponentDefinition existingDefinition : document.getComponentDefinitions()) {
+			if (existingDefinition.getTypes().contains(ComponentDefinition.PROTEIN)) {
+				for (Sequence sequence : existingDefinition.getSequences()) {
+					// Normalize sequences for comparison (trim and uppercase to avoid formatting mismatches)
+					String existingSequence = sequence.getElements().trim().toUpperCase();
+					System.out.println("ExistingProteinSequence:" + existingSequence);
+					String newSequence = proteinSeq.trim().toUpperCase();
+					System.out.println("QueryProteinSequence: " + newSequence);
+					//System.out.println(existingDefinition);
+
+
+					if (existingSequence.equals(newSequence)) {
+						// Protein with the same sequence already exists
+						proteinComponentDefinition = existingDefinition;
+						break;
+					}
+				}
+				if (proteinComponentDefinition != null) break;
+			}
+		}
+
+// If no matching protein was found, create a new one
+		if (proteinComponentDefinition == null) {
+			// Create a new protein object
+			System.out.println("No matching protein was found,let's create a new protein component definition");
+			proteinComponentDefinition = document.createComponentDefinition(cdsId + "_protein", version, ComponentDefinition.PROTEIN);
+
+			proteinComponentDefinition.setName(cdsId + "_protein");
+			proteinComponentDefinition.addWasGeneratedBy(activityURI);
+			proteinComponentDefinition.createAnnotation(new QName(dcTermsNS, "created", "dcTerms"), createdDate);
+			System.out.println("The newly created protein component definition : " + proteinComponentDefinition);
+
+
+			// Create an SBOL Sequence object for the Amino Acid Sequence
+			Sequence proteinSequence = document.createSequence(cdsId + "_protein_sequence", version, proteinSeq, Sequence.IUPAC_PROTEIN);
+			proteinComponentDefinition.addSequence(proteinSequence);
+			System.out.println("The SBOL sequence object of a newly created protein component definition : " + proteinComponentDefinition.getSequences());
+
+			// Create a new protein degradation module
+			moduleDefinition = document.createModuleDefinition(cdsId + "_protein_degradation", version);
+			moduleDefinition.setName(cdsId + "_protein_degradation");
 			moduleDefinition.addWasGeneratedBy(activityURI);
-			moduleDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
-			moduleDefinition.createFunctionalComponent(cdsId+"_protein", AccessType.PUBLIC, 
-					proteinComponentDefinition.getIdentity(), DirectionType.NONE);
+			moduleDefinition.createAnnotation(new QName(dcTermsNS, "created", "dcTerms"), createdDate);
+			moduleDefinition.createFunctionalComponent(cdsId + "_protein", AccessType.PUBLIC, proteinComponentDefinition.getIdentity(), DirectionType.NONE);
+
 			String interactionId = cdsId + "_degradation_interaction";
 			interaction = moduleDefinition.createInteraction(interactionId, SystemsBiologyOntology.DEGRADATION);
-			interaction.createParticipation(cdsId+"_protein", cdsId+"_protein",  SystemsBiologyOntology.REACTANT);
+			interaction.createParticipation(cdsId + "_protein", cdsId + "_protein", SystemsBiologyOntology.REACTANT);
+			System.out.println("The newly created protein degradation module definition : " + moduleDefinition);
+
 		}
-		
-		// Creates a new protein production module
-		moduleDefinition = 
-				document.createModuleDefinition(cdsId+"_protein_production", version);
-		moduleDefinition.setName(cdsId+"_protein_production");
+
+// Create a new protein production module in both cases
+		System.out.println("A new protein production module is being created in regardless of the query protein sequence match existing protein ssequences");
+		moduleDefinition = document.createModuleDefinition(cdsId + "_protein_production", version);
+		moduleDefinition.setName(cdsId + "_protein_production");
 		moduleDefinition.addWasGeneratedBy(activityURI);
-		moduleDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
-		moduleDefinition.createFunctionalComponent(cdsId, AccessType.PUBLIC, 
-				cds.getIdentity(), DirectionType.NONE);
-		moduleDefinition.createFunctionalComponent(cdsId+"_protein", AccessType.PUBLIC, 
-				proteinComponentDefinition.getIdentity(), DirectionType.NONE);
-		interaction = moduleDefinition.createInteraction(cdsId+"_protein_interaction", 
-				SystemsBiologyOntology.GENETIC_PRODUCTION);
+		moduleDefinition.createAnnotation(new QName(dcTermsNS, "created", "dcTerms"), createdDate);
+		moduleDefinition.createFunctionalComponent(cdsId, AccessType.PUBLIC, cds.getIdentity(), DirectionType.NONE);
+		moduleDefinition.createFunctionalComponent(cdsId + "_protein", AccessType.PUBLIC, proteinComponentDefinition.getIdentity(), DirectionType.NONE);
+
+// Create an interaction for the protein production module
+		interaction = moduleDefinition.createInteraction(cdsId + "_protein_interaction", SystemsBiologyOntology.GENETIC_PRODUCTION);
 		interaction.createParticipation(cdsId, cdsId, SystemsBiologyOntology.TEMPLATE);
-		interaction.createParticipation(cdsId+"_protein", cdsId+"_protein", SystemsBiologyOntology.PRODUCT);
+		interaction.createParticipation(cdsId + "_protein", cdsId + "_protein", SystemsBiologyOntology.PRODUCT);
+		System.out.println("The newly created protein production module definition : " + moduleDefinition);
+
 	}
-	
-	
+
 	/**
 	 * Creates an RNA component in the given SBOL document and its associated interactions
 	 * and degradation pathways.
@@ -407,67 +502,29 @@ public class Cello2SBOL {
 	 * @throws SBOLValidationException if there is an error in the SBOL validation process
 	 */
 	private static void convertGatePartsToSBOL(SBOLDocument document,HashSet<JSONObject> gate_partsArr,
-			HashMap<String,JSONObject> gatesMap,HashMap<String,JSONObject> responseMap, HashMap<String,JSONObject> functionMap) throws SBOLValidationException {
+											   HashMap<String,JSONObject> gatesMap,HashMap<String,JSONObject> responseMap, HashMap<String,JSONObject> functionMap) throws SBOLValidationException {
 		for (JSONObject gate : gate_partsArr) {
 			boolean v2 = (functionMap != null);
 			String gate_name = (String)gate.get("gate_name");
+
 			String respfxn = null;
-			
+
 			if(v2) {
 				gate_name = (String)gate.get("name");
 				gate_name = gate_name.substring(0, gate_name.length()-10);
 				respfxn = (String) ((functionMap.get((String)(((JSONObject)responseMap.get(gate_name).get("functions")).get("response_function")))).get("equation"));
 			}
-			
+
 			else {
 				respfxn = (String)responseMap.get(gate_name).get("equation");
 			}
-			
+			// Generate a unique gate name using a hash
+			String uniqueGateName = gate_name + "_" + Integer.toHexString(gate_name.hashCode());
+			System.out.println("Unique gate name: " + uniqueGateName); // Debugging
+
 			// TODO: move the loop through devices to this location, so that a new device is created for each cassette
-			// TODO: make sure to create a unique gate name from cassette name
-			ComponentDefinition componentDefinition = 
-					document.createComponentDefinition(gate_name, version, ComponentDefinition.DNA_REGION);
-			componentDefinition.setName(gate_name);
-			componentDefinition.addRole(SequenceOntology.ENGINEERED_REGION);
-			componentDefinition.addWasGeneratedBy(activityURI);
-			
-			componentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
-	        componentDefinition.createAnnotation(new QName(celloNS,"family","cello"), 
-	        		(String)gatesMap.get(gate_name).get("system"));
-	        //componentDefinition.addUriAnnotation(regulatorSO, gatesMap[gpartName].regulator);
-	        componentDefinition.createAnnotation(new QName(celloNS,"gate_type","cello"), 
-	        		(String)gatesMap.get(gate_name).get("gate_type"));
-	        componentDefinition.createAnnotation(new QName(celloNS,"group_name","cello"), 
-	        		(String)gatesMap.get(gate_name).get(v2 ? "group" : "group_name"));
-	        componentDefinition.createAnnotation(new QName(celloNS,"color_hexcode","cello"), 
-	        		(String)gatesMap.get(gate_name).get(v2 ? "color" : "color_hexcode"));
-	        componentDefinition.createAnnotation(new QName(celloNS,"response_function","cello"), 
-	        		respfxn);
-	        if (((JSONObject)responseMap.get(gate_name).get("functions")).get("tandem_interference_factor") != null) {
-	        	componentDefinition.createAnnotation(new QName(celloNS,"tandem_efficiency_factor","cello"), 
-	        			(String) ((functionMap.get((String)(((JSONObject)responseMap.get(gate_name).get("functions")).get("tandem_interference_factor")))).get("equation")));
-	        }
-	        if (((JSONObject)responseMap.get(gate_name).get("functions")).get("tandem_input_composition") != null) {
-	        	componentDefinition.createAnnotation(new QName(celloNS,"tandem_input_composition","cello"), 
-	        			(String) ((functionMap.get((String)(((JSONObject)responseMap.get(gate_name).get("functions")).get("tandem_interference_factor")))).get("equation")));
-	        }
-	        
-	        JSONArray parameters = (JSONArray)responseMap.get(gate_name).get("parameters");
-	        for (Object obj : parameters) {
-	        	String name = (String)((JSONObject)obj).get("name");
-	        	componentDefinition.createAnnotation(new QName(celloNS,name,"cello"), 
-	        			(Double)((JSONObject)obj).get("value"));
-	        }
-//	        JSONArray variables = (JSONArray)responseMap.get(gate_name).get("variables");
-//	        for (Object obj : variables) {
-//	        	String name = (String)((JSONObject)obj).get("name");
-//	        	componentDefinition.createAnnotation(new QName(celloNS,name+"_off_threshold","cello"), 
-//	        			(Double)((JSONObject)obj).get("off_threshold"));
-//	        	componentDefinition.createAnnotation(new QName(celloNS,name+"_on_threshold","cello"), 
-//	        			(Double)((JSONObject)obj).get("on_threshold"));
-//	        }
-	        // TODO: this devices loop needs to move up higher
-	        JSONArray expression_cassettes = v2 ? (JSONArray) gate.get("devices") : (JSONArray) gate.get("expression_cassettes");
+			// TODO: this devices loop needs to move up higher (Already moved to this location)
+			JSONArray expression_cassettes = v2 ? (JSONArray) gate.get("devices") : (JSONArray) gate.get("expression_cassettes");
 			String seq = "";
 			for (Object obj : expression_cassettes) {
 				int annotationCount = 0;
@@ -475,21 +532,65 @@ public class Cello2SBOL {
 				//int constraintCount = 0;
 				//Component previousComponent = null;
 //		        Component currentComponent = null;
-		        
+
 				JSONObject expression_cassette = (JSONObject) obj;
 				JSONArray cassette_parts = v2 ? (JSONArray)expression_cassette.get("components") : (JSONArray)expression_cassette.get("cassette_parts");
-				
+
 				if (((String)cassette_parts.get(0)).startsWith("#in")) { // && ((String)cassette_parts.get(1)).startsWith("#in")) {
 					continue;
 				}
 				boolean firstDevice = true;
 				// TODO: end of loop start
+
+
+			ComponentDefinition componentDefinition =
+					document.createComponentDefinition(uniqueGateName, version, ComponentDefinition.DNA_REGION);
+			componentDefinition.setName(uniqueGateName);
+			componentDefinition.addRole(SequenceOntology.ENGINEERED_REGION);
+			componentDefinition.addWasGeneratedBy(activityURI);
+
+			componentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
+			componentDefinition.createAnnotation(new QName(celloNS,"family","cello"),
+					(String)gatesMap.get(uniqueGateName).get("system"));
+			//componentDefinition.addUriAnnotation(regulatorSO, gatesMap[gpartName].regulator);
+			componentDefinition.createAnnotation(new QName(celloNS,"gate_type","cello"),
+					(String)gatesMap.get(uniqueGateName).get("gate_type"));
+			componentDefinition.createAnnotation(new QName(celloNS,"group_name","cello"),
+					(String)gatesMap.get(uniqueGateName).get(v2 ? "group" : "group_name"));
+			componentDefinition.createAnnotation(new QName(celloNS,"color_hexcode","cello"),
+					(String)gatesMap.get(uniqueGateName).get(v2 ? "color" : "color_hexcode"));
+			componentDefinition.createAnnotation(new QName(celloNS,"response_function","cello"),
+					respfxn);
+			if (((JSONObject)responseMap.get(uniqueGateName).get("functions")).get("tandem_interference_factor") != null) {
+				componentDefinition.createAnnotation(new QName(celloNS,"tandem_efficiency_factor","cello"),
+						(String) ((functionMap.get((String)(((JSONObject)responseMap.get(uniqueGateName).get("functions")).get("tandem_interference_factor")))).get("equation")));
+			}
+			if (((JSONObject)responseMap.get(uniqueGateName).get("functions")).get("tandem_input_composition") != null) {
+				componentDefinition.createAnnotation(new QName(celloNS,"tandem_input_composition","cello"),
+						(String) ((functionMap.get((String)(((JSONObject)responseMap.get(uniqueGateName).get("functions")).get("tandem_interference_factor")))).get("equation")));
+			}
+
+			JSONArray parameters = (JSONArray)responseMap.get(uniqueGateName).get("parameters");
+			for (Object obj1 : parameters) {
+				String name = (String)((JSONObject)obj1).get("name");
+				componentDefinition.createAnnotation(new QName(celloNS,name,"cello"),
+						(Double)((JSONObject)obj).get("value"));
+			}
+//	        JSONArray variables = (JSONArray)responseMap.get(gate_name).get("variables");
+//	        for (Object obj : variables) {
+//	        	String name = (String)((JSONObject)obj).get("name");
+//	        	componentDefinition.createAnnotation(new QName(celloNS,name+"_off_threshold","cello"),
+//	        			(Double)((JSONObject)obj).get("off_threshold"));
+//	        	componentDefinition.createAnnotation(new QName(celloNS,name+"_on_threshold","cello"),
+//	        			(Double)((JSONObject)obj).get("on_threshold"));
+//	        }
+
 				for (Object obj2 : cassette_parts) {
 					String partId = (String)obj2;
 					ComponentDefinition partComponentDefinition = document.getComponentDefinition(partId, version);
 					String cass_seq = document.getSequence(partId+"_sequence",version).getElements();
 					seq += cass_seq;
-					//currentComponent = 
+					//currentComponent =
 					componentDefinition.createComponent(partId, AccessType.PUBLIC, partId, version);
 //					if (previousComponent != null) {
 //						componentDefinition.createSequenceConstraint("constraint"+constraintCount, RestrictionType.PRECEDES,
@@ -497,12 +598,12 @@ public class Cello2SBOL {
 //						constraintCount++;
 //					}
 //					previousComponent = currentComponent;
-					SequenceAnnotation sa = componentDefinition.createSequenceAnnotation("annotation"+annotationCount, 
+					SequenceAnnotation sa = componentDefinition.createSequenceAnnotation("annotation"+annotationCount,
 							"range", start, start + cass_seq.length() - 1, OrientationType.INLINE);
 					sa.setComponent(partId);
 					start += cass_seq.length();
 					annotationCount++;
-					
+
 					// Creates the inhibition ModuleDefinition
 					if (firstDevice) {
 						if (partComponentDefinition.getRoles().contains(SequenceOntology.CDS)) {
@@ -522,17 +623,18 @@ public class Cello2SBOL {
 					}
 				}
 				break;
-				
+
 			}
-			
-			Sequence sequence = document.createSequence(gate_name+"_sequence", version, seq, Sequence.IUPAC_DNA);
-			sequence.setName(gate_name+"_sequence");
+
+			Sequence sequence = document.createSequence(uniqueGateName+"_sequence", version, seq, Sequence.IUPAC_DNA);
+			sequence.setName(uniqueGateName+"_sequence");
 			sequence.addWasGeneratedBy(activityURI);
 			sequence.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 			componentDefinition.addSequence(sequence);
-			
+
 		}
 	}
+
 
 	/**
 	 * Converts input sensor data to SBOL (Synthetic Biology Open Language) format and adds it to the SBOLDocument.
