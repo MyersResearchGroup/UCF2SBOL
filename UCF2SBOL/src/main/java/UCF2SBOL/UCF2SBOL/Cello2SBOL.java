@@ -622,16 +622,14 @@ public class Cello2SBOL {
 						firstDevice = false;
 					}
 				}
+				Sequence sequence = document.createSequence(uniqueGateName+"_sequence", version, seq, Sequence.IUPAC_DNA);
+				sequence.setName(uniqueGateName+"_sequence");
+				sequence.addWasGeneratedBy(activityURI);
+				sequence.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
+				componentDefinition.addSequence(sequence);
 				break;
 
 			}
-
-			Sequence sequence = document.createSequence(uniqueGateName+"_sequence", version, seq, Sequence.IUPAC_DNA);
-			sequence.setName(uniqueGateName+"_sequence");
-			sequence.addWasGeneratedBy(activityURI);
-			sequence.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
-			componentDefinition.addSequence(sequence);
-
 		}
 	}
 
