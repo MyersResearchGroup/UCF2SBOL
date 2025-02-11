@@ -519,16 +519,14 @@ public class Cello2SBOL {
 				respfxn = (String)responseMap.get(gate_name).get("equation");
 			}
 			// Generate a unique gate name using a hash
-			String uniqueGateName = gate_name + "_" + Integer.toHexString(gate_name.hashCode());
-			System.out.println("Unique gate name: " + uniqueGateName); // Debugging
 
 			// TODO: move the loop through devices to this location, so that a new device is created for each cassette
 			// TODO: this devices loop needs to move up higher (Already moved to this location)
 			JSONArray expression_cassettes = v2 ? (JSONArray) gate.get("devices") : (JSONArray) gate.get("expression_cassettes");
-			String seq = "";
 			for (Object obj : expression_cassettes) {
 				int annotationCount = 0;
 				int start = 1;
+				String seq = "";
 				//int constraintCount = 0;
 				//Component previousComponent = null;
 //		        Component currentComponent = null;
@@ -539,6 +537,10 @@ public class Cello2SBOL {
 				if (((String)cassette_parts.get(0)).startsWith("#in")) { // && ((String)cassette_parts.get(1)).startsWith("#in")) {
 					continue;
 				}
+
+				String uniqueGateName = (String)expression_cassette.get("name");
+				System.out.println("Unique gate name: " + uniqueGateName); // Debugging
+
 				boolean firstDevice = true;
 				// TODO: end of loop start
 
@@ -551,30 +553,30 @@ public class Cello2SBOL {
 
 				componentDefinition.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 				componentDefinition.createAnnotation(new QName(celloNS,"family","cello"),
-						(String)gatesMap.get(uniqueGateName).get("system"));
+						(String)gatesMap.get(gate_name).get("system"));
 				//componentDefinition.addUriAnnotation(regulatorSO, gatesMap[gpartName].regulator);
 				componentDefinition.createAnnotation(new QName(celloNS,"gate_type","cello"),
-						(String)gatesMap.get(uniqueGateName).get("gate_type"));
+						(String)gatesMap.get(gate_name).get("gate_type"));
 				componentDefinition.createAnnotation(new QName(celloNS,"group_name","cello"),
-						(String)gatesMap.get(uniqueGateName).get(v2 ? "group" : "group_name"));
+						(String)gatesMap.get(gate_name).get(v2 ? "group" : "group_name"));
 				componentDefinition.createAnnotation(new QName(celloNS,"color_hexcode","cello"),
-						(String)gatesMap.get(uniqueGateName).get(v2 ? "color" : "color_hexcode"));
+						(String)gatesMap.get(gate_name).get(v2 ? "color" : "color_hexcode"));
 				componentDefinition.createAnnotation(new QName(celloNS,"response_function","cello"),
 						respfxn);
-				if (((JSONObject)responseMap.get(uniqueGateName).get("functions")).get("tandem_interference_factor") != null) {
+				if (((JSONObject)responseMap.get(gate_name).get("functions")).get("tandem_interference_factor") != null) {
 					componentDefinition.createAnnotation(new QName(celloNS,"tandem_efficiency_factor","cello"),
-							(String) ((functionMap.get((String)(((JSONObject)responseMap.get(uniqueGateName).get("functions")).get("tandem_interference_factor")))).get("equation")));
+							(String) ((functionMap.get((String)(((JSONObject)responseMap.get(gate_name).get("functions")).get("tandem_interference_factor")))).get("equation")));
 				}
-				if (((JSONObject)responseMap.get(uniqueGateName).get("functions")).get("tandem_input_composition") != null) {
+				if (((JSONObject)responseMap.get(gate_name).get("functions")).get("tandem_input_composition") != null) {
 					componentDefinition.createAnnotation(new QName(celloNS,"tandem_input_composition","cello"),
-							(String) ((functionMap.get((String)(((JSONObject)responseMap.get(uniqueGateName).get("functions")).get("tandem_interference_factor")))).get("equation")));
+							(String) ((functionMap.get((String)(((JSONObject)responseMap.get(gate_name).get("functions")).get("tandem_interference_factor")))).get("equation")));
 				}
 
-				JSONArray parameters = (JSONArray)responseMap.get(uniqueGateName).get("parameters");
+				JSONArray parameters = (JSONArray)responseMap.get(gate_name).get("parameters");
 				for (Object obj1 : parameters) {
 					String name = (String)((JSONObject)obj1).get("name");
 					componentDefinition.createAnnotation(new QName(celloNS,name,"cello"),
-							(Double)((JSONObject)obj).get("value"));
+							(Double)((JSONObject)obj1).get("value"));
 				}
 //	        JSONArray variables = (JSONArray)responseMap.get(gate_name).get("variables");
 //	        for (Object obj : variables) {
@@ -622,13 +624,12 @@ public class Cello2SBOL {
 						firstDevice = false;
 					}
 				}
+				System.out.println("Sequence: "+uniqueGateName+"_sequence");
 				Sequence sequence = document.createSequence(uniqueGateName+"_sequence", version, seq, Sequence.IUPAC_DNA);
 				sequence.setName(uniqueGateName+"_sequence");
 				sequence.addWasGeneratedBy(activityURI);
 				sequence.createAnnotation(new QName(dcTermsNS,"created","dcTerms"), createdDate);
 				componentDefinition.addSequence(sequence);
-				break;
-
 			}
 		}
 	}
