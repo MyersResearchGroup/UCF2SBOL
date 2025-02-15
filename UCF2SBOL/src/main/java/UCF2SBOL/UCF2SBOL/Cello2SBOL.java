@@ -185,7 +185,7 @@ public class Cello2SBOL {
 		for (JSONObject part : partsMap.values()) {
 			String name = (String)part.get("name");
 			name = name.replace("-", "_");
-			System.out.println(name);
+			System.out.println("Creating part: " + name);
 			String dnasequence = (String)part.get("dnasequence");
 			Sequence sequence = document.createSequence(name + "_sequence", version, dnasequence, Sequence.IUPAC_DNA);
 			sequence.setName(name+"_sequence");
@@ -233,9 +233,9 @@ public class Cello2SBOL {
 				for (Sequence sequence : existingDefinition.getSequences()) {
 					// Normalize sequences for comparison (trim and uppercase to avoid formatting mismatches)
 					String existingSequence = sequence.getElements().trim().toUpperCase();
-					System.out.println("ExistingProteinSequence:" + existingSequence);
+					//System.out.println("ExistingProteinSequence:" + existingSequence);
 					String newSequence = proteinSeq.trim().toUpperCase();
-					System.out.println("QueryProteinSequence: " + newSequence);
+					//System.out.println("QueryProteinSequence: " + newSequence);
 					//System.out.println(existingDefinition);
 
 
@@ -252,19 +252,17 @@ public class Cello2SBOL {
 // If no matching protein was found, create a new one
 		if (proteinComponentDefinition == null) {
 			// Create a new protein object
-			System.out.println("No matching protein was found,let's create a new protein component definition");
+			System.out.println("Creating protein: "+cdsId+"_protein");
 			proteinComponentDefinition = document.createComponentDefinition(cdsId + "_protein", version, ComponentDefinition.PROTEIN);
 
 			proteinComponentDefinition.setName(cdsId + "_protein");
 			proteinComponentDefinition.addWasGeneratedBy(activityURI);
 			proteinComponentDefinition.createAnnotation(new QName(dcTermsNS, "created", "dcTerms"), createdDate);
-			System.out.println("The newly created protein component definition : " + proteinComponentDefinition);
 
 
 			// Create an SBOL Sequence object for the Amino Acid Sequence
 			Sequence proteinSequence = document.createSequence(cdsId + "_protein_sequence", version, proteinSeq, Sequence.IUPAC_PROTEIN);
 			proteinComponentDefinition.addSequence(proteinSequence);
-			System.out.println("The SBOL sequence object of a newly created protein component definition : " + proteinComponentDefinition.getSequences());
 
 			// Create a new protein degradation module
 			moduleDefinition = document.createModuleDefinition(cdsId + "_protein_degradation", version);
@@ -276,12 +274,10 @@ public class Cello2SBOL {
 			String interactionId = cdsId + "_degradation_interaction";
 			interaction = moduleDefinition.createInteraction(interactionId, SystemsBiologyOntology.DEGRADATION);
 			interaction.createParticipation(cdsId + "_protein", cdsId + "_protein", SystemsBiologyOntology.REACTANT);
-			System.out.println("The newly created protein degradation module definition : " + moduleDefinition);
 
 		}
 
 // Create a new protein production module in both cases
-		System.out.println("A new protein production module is being created in regardless of the query protein sequence match existing protein ssequences");
 		moduleDefinition = document.createModuleDefinition(cdsId + "_protein_production", version);
 		moduleDefinition.setName(cdsId + "_protein_production");
 		moduleDefinition.addWasGeneratedBy(activityURI);
@@ -293,7 +289,6 @@ public class Cello2SBOL {
 		interaction = moduleDefinition.createInteraction(cdsId + "_protein_interaction", SystemsBiologyOntology.GENETIC_PRODUCTION);
 		interaction.createParticipation(cdsId, cdsId, SystemsBiologyOntology.TEMPLATE);
 		interaction.createParticipation(cdsId + "_protein", cdsId + "_protein", SystemsBiologyOntology.PRODUCT);
-		System.out.println("The newly created protein production module definition : " + moduleDefinition);
 
 	}
 
@@ -308,6 +303,7 @@ public class Cello2SBOL {
 	 */
 	private static void createRNA(SBOLDocument document,String rnaId,ComponentDefinition rna) throws SBOLValidationException
 	{
+		System.out.println("Creating RNA: "+rnaId+"_rna");
 		ComponentDefinition rnaComponentDefinition =
 				document.createComponentDefinition(rnaId+"_rna", version, ComponentDefinition.RNA_MOLECULE);
 		rnaComponentDefinition.addRole(URI.create(so + "SO:0001998"));
@@ -359,6 +355,7 @@ public class Cello2SBOL {
 	private static void createInhibition(SBOLDocument document,String inhibitor,String inhibited,
 										 Double ymin,Double ymax,Double alpha,Double beta,Double tau_on,Double tau_off) throws SBOLValidationException
 	{
+		System.out.println("Creating inhibition from "+inhibitor+" to "+inhibited);
 		ModuleDefinition moduleDefinition =
 				document.createModuleDefinition(inhibitor+"_"+inhibited+"_repression", version);
 		moduleDefinition.addWasGeneratedBy(activityURI);
@@ -411,6 +408,7 @@ public class Cello2SBOL {
 	private static void createActivation(SBOLDocument document,String activator,String promoter,
 										 Double ymin,Double ymax,Double alpha,Double beta,Double tau_on,Double tau_off) throws SBOLValidationException
 	{
+		System.out.println("Creating activation from "+activator+" to "+promoter);
 		ModuleDefinition moduleDefinition =
 				document.createModuleDefinition(activator+"_"+promoter+"_activation", version);
 		moduleDefinition.addWasGeneratedBy(activityURI);
@@ -457,6 +455,7 @@ public class Cello2SBOL {
 	private static void createComplex(SBOLDocument document,String reactant1,String reactant2) throws SBOLValidationException
 	{
 		String complex = reactant1 + "_" + reactant2;
+		System.out.println("Creating complex: "+complex);
 		ComponentDefinition complexComponentDefinition =
 				document.createComponentDefinition(complex, version, ComponentDefinition.COMPLEX);
 		complexComponentDefinition.setName(complex);
@@ -523,6 +522,7 @@ public class Cello2SBOL {
 			// TODO: move the loop through devices to this location, so that a new device is created for each cassette
 			// TODO: this devices loop needs to move up higher (Already moved to this location)
 			JSONArray expression_cassettes = v2 ? (JSONArray) gate.get("devices") : (JSONArray) gate.get("expression_cassettes");
+			boolean firstDevice = true;
 			for (Object obj : expression_cassettes) {
 				int annotationCount = 0;
 				int start = 1;
@@ -539,11 +539,7 @@ public class Cello2SBOL {
 				}
 
 				String uniqueGateName = (String)expression_cassette.get("name");
-				System.out.println("Unique gate name: " + uniqueGateName); // Debugging
-
-				boolean firstDevice = true;
-				// TODO: end of loop start
-
+				System.out.println("Creating gate: "+uniqueGateName);
 
 				ComponentDefinition componentDefinition =
 						document.createComponentDefinition(uniqueGateName, version, ComponentDefinition.DNA_REGION);
@@ -608,23 +604,25 @@ public class Cello2SBOL {
 
 					// Creates the inhibition ModuleDefinition
 					if (firstDevice) {
-						if (partComponentDefinition.getRoles().contains(SequenceOntology.CDS)) {
+						if (partComponentDefinition.getRoles().contains(SequenceOntology.CDS) &&
+								document.getComponentDefinition(partId+"_protein", version)!=null) {
 							String promoter = v2 ? (String)((JSONArray)gate.get("outputs")).get(0) : (String)gate.get("promoter");
 							if (document.getModuleDefinition(partId+"_protein_"+promoter+"_repression", version)==null) {
 								createInhibition(document,partId+"_protein",promoter,null,null,null,null,null,null);
 							}
+							firstDevice = false;
 						}
-						if (partComponentDefinition.getRoles().contains(URI.create(so + "SO:0001264"))) {
+						if (partComponentDefinition.getRoles().contains(URI.create(so + "SO:0001264")) &&
+								document.getComponentDefinition(partId+"_rna_dCAS9_Mxi1_protein", version)!=null) {
 							String promoter = v2 ? (String)((JSONArray)gate.get("outputs")).get(0) : (String)gate.get("promoter");
 							createComplex(document,partId+"_rna","dCAS9_Mxi1_protein");
 							if (document.getModuleDefinition(partId+"_rna_dCAS9_Mxi1_protein_"+promoter+"_repression", version)==null) {
 								createInhibition(document,partId+"_rna_dCAS9_Mxi1_protein",promoter,null,null,null,null,null,null);
 							}
+							firstDevice = false;
 						}
-						firstDevice = false;
 					}
 				}
-				System.out.println("Sequence: "+uniqueGateName+"_sequence");
 				Sequence sequence = document.createSequence(uniqueGateName+"_sequence", version, seq, Sequence.IUPAC_DNA);
 				sequence.setName(uniqueGateName+"_sequence");
 				sequence.addWasGeneratedBy(activityURI);
@@ -647,6 +645,7 @@ public class Cello2SBOL {
 	private static void convertInputSensorsToSBOL(SBOLDocument document,HashSet<JSONObject> input_sensorsArr,HashMap<String,JSONObject> responseMap, HashMap<String,JSONObject> functionMap) throws SBOLValidationException {
 		for (JSONObject sensor : input_sensorsArr) {
 			String sensor_name = (String)sensor.get("name");
+			System.out.println("Creating sensor: "+sensor_name);
 			boolean v2 = (responseMap != null);
 			String respfxn = null;
 
@@ -765,6 +764,7 @@ public class Cello2SBOL {
 	private static void convertOutputReportersToSBOL(SBOLDocument document,HashSet<JSONObject> output_reportersArr,HashMap<String,JSONObject> responseMap, HashMap<String,JSONObject> functionMap) throws SBOLValidationException {
 		for (JSONObject sensor : output_reportersArr) {
 			String reporter_name = (String)sensor.get("name");
+			System.out.println("Creating reporter: "+reporter_name);
 			boolean v2 = (responseMap != null);
 			String respfxn = null;
 
