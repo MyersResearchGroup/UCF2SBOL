@@ -585,6 +585,7 @@ public class Cello2SBOL {
 
 				for (Object obj2 : cassette_parts) {
 					String partId = (String)obj2;
+					partId = partId.replace("-", "_");
 					ComponentDefinition partComponentDefinition = document.getComponentDefinition(partId, version);
 					String cass_seq = document.getSequence(partId+"_sequence",version).getElements();
 					seq += cass_seq;
