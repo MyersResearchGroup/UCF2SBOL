@@ -678,6 +678,7 @@ public class Cello2SBOL {
 			if (parameters != null) {
 				for (Object obj : parameters) {
 					String name = (String)((JSONObject)obj).get("name");
+					System.out.println(name);
 					componentDefinition.createAnnotation(new QName(celloNS,name,"cello"),
 							(Double)((JSONObject)obj).get("value"));
 				}
@@ -690,8 +691,12 @@ public class Cello2SBOL {
 			int start = 1;
 			for (Object obj2 : parts) {
 				String partId = (String)obj2;
+				System.out.println(partId);
 				ComponentDefinition partComponentDefinition = document.getComponentDefinition(partId, version);
-				String cass_seq = document.getSequence(partId+"_sequence",version).getElements();
+				String cass_seq = "";
+				if (document.getSequence(partId+"_sequence",version)!=null) {
+					cass_seq = document.getSequence(partId+"_sequence",version).getElements();
+				}
 				seq += cass_seq;
 				//currentComponent =
 				componentDefinition.createComponent(partId, AccessType.PUBLIC, partId, version);
@@ -701,13 +706,14 @@ public class Cello2SBOL {
 //						constraintCount++;
 //					}
 //					previousComponent = currentComponent;
-				SequenceAnnotation sa = componentDefinition.createSequenceAnnotation("annotation"+annotationCount,
-						"range", start, start + cass_seq.length() - 1, OrientationType.INLINE);
-				sa.setComponent(partId);
-				start += cass_seq.length();
-				annotationCount++;
-
-				if (partComponentDefinition.getRoles().contains(SequenceOntology.CDS)) {
+				if (cass_seq.length()>0) {
+					SequenceAnnotation sa = componentDefinition.createSequenceAnnotation("annotation"+annotationCount,
+							"range", start, start + cass_seq.length() - 1, OrientationType.INLINE);
+					sa.setComponent(partId);
+					start += cass_seq.length();
+					annotationCount++;
+				}
+				if (partComponentDefinition != null && partComponentDefinition.getRoles().contains(SequenceOntology.CDS)) {
 					String promoter = (String)sensor.get("promoter");
 					String input_molecule = (String)sensor.get("input_molecule");
 					Double signal_low = (Double)sensor.get("signal_low");
@@ -973,7 +979,7 @@ public class Cello2SBOL {
 
 		SBOLDocument document = new SBOLDocument();
 		document.setDefaultURIprefix(uriPrefix);
-		document.setComplete(true);
+		document.setComplete(false);
 		document.setCreateDefaults(true);
 
 		TimeZone tz = TimeZone.getTimeZone("UTC");
@@ -1145,7 +1151,7 @@ public class Cello2SBOL {
 
 		// Validate
 		SBOLValidate.validateSBOL(document,true,true,true);
-//        document.write(collectionId + ".SBOL");
+        document.write("/Users/myers/"+collectionId + ".xml");
 		int i = 0;
 		if (SBOLValidate.getNumErrors()>0) {
 			for (String error : SBOLValidate.getErrors()) {
